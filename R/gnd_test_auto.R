@@ -25,10 +25,26 @@ gnd_test_auto <- function(predicted_risk,
                           time_admin_censor,
                           group_count_init = 10,
                           group_count_min = 2,
-                          group_min_events = 5,
+                          group_min_events_warn = 5,
+                          group_min_events_stop = 2,
                           verbose = 1) {
 
- do_over <- TRUE
+ check_call(
+  match.call(),
+  expected = list(
+   'predicted_risk' = list(type = 'numeric', lwr = 0, upr = 1),
+   'event_time' = list(type = 'numeric', lwr = 0),
+   'event_status' = list(type = 'numeric', uni = c(0, 1)),
+   'time_predict' = list(type = 'numeric', lwr = 0, length = 1),
+   'time_admin_censor' = list(type = 'numeric', lwr = 0, length = 1),
+   'group_count_init' = list(type = 'numeric', length = 1, lwr = 2),
+   'group_count_min' = list(type = 'numeric', length = 1, lwr = 2),
+   'group_min_events_warn' = list(type = 'numeric', length = 1, lwr = 5),
+   'group_min_events_stop' = list(type = 'numeric', length = 1, lwr = 2),
+   'verbose' = list(type = 'numeric', length = 1, lwr = 0)
+  )
+ )
+
  too_few_groups <- FALSE
  group_count <- group_count_init
 
@@ -51,9 +67,8 @@ gnd_test_auto <- function(predicted_risk,
   group_event_counts <-
    subset(as.data.frame(group_event_table), event_status == 1)
 
-  if(all(group_event_counts$Freq > group_min_events)){
+  if(all(group_event_counts$Freq > group_min_events_warn)){
    if(verbose > 0) message("okay")
-   do_over <- FALSE
    break
   }
 
@@ -62,7 +77,6 @@ gnd_test_auto <- function(predicted_risk,
 
   if(group_count < group_count_min){
    too_few_groups <- TRUE
-   do_over <- FALSE
    break
   }
 
@@ -86,8 +100,9 @@ gnd_test_auto <- function(predicted_risk,
                    event_status = event_status,
                    group = group,
                    time_admin_censor = time_admin_censor,
-                   group_min_events = group_min_events,
-                   verbose = verbose - 1),
+                   group_min_events_warn = group_min_events_warn,
+                   group_min_events_stop = group_min_events_stop,
+                   verbose = max(0, verbose - 1)),
    silent = TRUE
   )
 
@@ -99,21 +114,21 @@ gnd_test_auto <- function(predicted_risk,
 
  if(GND_fail){
 
-  GND.chisq <- NA_real_
-  GND.pvalue <- NA_real_
+  GND_chisq <- NA_real_
+  GND_pvalue <- NA_real_
   group_count <- NA_real_
 
  } else {
 
-  GND.chisq <- GND_result['chi2gw']
-  GND.pvalue <- GND_result['pvalgw']
+  GND_chisq <- GND_result$GND_chisq
+  GND_pvalue <- GND_result$GND_pvalue
 
  }
 
  data.frame(
   GND_df = group_count-1,
-  GND_chisq = GND.chisq,
-  GND_pvalue = GND.pvalue,
+  GND_chisq = GND_chisq,
+  GND_pvalue = GND_pvalue,
   row.names = NULL
  )
 

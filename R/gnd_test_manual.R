@@ -65,6 +65,7 @@ gnd_test_manual = function(predicted_risk,
     call. = FALSE
   )
 
+  # TODO Add this to details of documentation
   # , and this may cause high variability in the GND test results
   # (see Demler, Paynter, Cook 'Tests of Calibration and Goodness of Fit
   #   in the Survival Setting, DOI: 10.1002/sim.6428).",
@@ -72,24 +73,28 @@ gnd_test_manual = function(predicted_risk,
   hl_tab <- with(
     data_curtailed,
     data.frame(
-      group        = sort(unique(group)),
-      totaln       = tapply(count,          group, sum),
-      numevents    = tapply(event_status,   group, sum),
-      expected     = tapply(predicted_risk, group, sum),
-      expectedperc = tapply(predicted_risk, group, mean)
+      group_label      = sort(unique(group)),
+      group_n          = tapply(count,          group, sum),
+      events_observed  = tapply(event_status,   group, sum),
+      events_expected  = tapply(predicted_risk, group, sum),
+      percent_expected = tapply(predicted_risk, group, mean)
     )
   )
 
 
-  hl_tab$kmperc  = 1 - km_tab[, 'est']
-  hl_tab$kmvar   = km_tab[, 'stderr']^2
-  hl_tab$kmnrisk = km_tab[, 'num']
-  hl_tab$kmnum   = hl_tab$kmperc * hl_tab$totaln
+  hl_tab$percent_observed  = 1 - km_tab[, 'est']
+  hl_tab$variance   = km_tab[, 'stderr']^2
 
-  hl_tab$GND_component = ifelse(
-    test = hl_tab$kmvar == 0,
-    yes = 0,
-    no = (hl_tab$kmperc - hl_tab$expectedperc) ^ 2 / (hl_tab$kmvar)
+  #hl_tab$kmnrisk = km_tab[, 'num']
+  #hl_tab$kmnum   = hl_tab$kmperc * hl_tab$totaln
+
+  hl_tab$GND_component <- with(
+    hl_tab,
+    expr = ifelse(
+      test = variance == 0,
+      yes = 0,
+      no = (percent_observed - percent_expected)^2 / variance
+    )
   )
 
   if(verbose > 0)
@@ -97,12 +102,12 @@ gnd_test_manual = function(predicted_risk,
       with(
         hl_tab[i, , drop = FALSE],
         message(
-          "Group ", group, " (N = ", totaln, ")",
-          "\n - ", numevents, " events observed (",
-          format(round(100*kmperc, digits = 1), nsmall = 1),"%)",
-          "\n - ", round(expected, digits = 0), " events expected (",
-          format(round(100*expectedperc, digits = 1), nsmall = 1),"%)",
-          "\n - ", kmnrisk, " remain in risk pool at T = ", time_admin_censor,
+          "Group ", group_label, " (N = ", group_n, ")",
+          "\n - ", events_observed, " events observed (",
+          format(round(100*percent_observed, digits = 1), nsmall = 1),"%)",
+          "\n - ", round(events_expected, digits = 0), " events expected (",
+          format(round(100*percent_expected, digits = 1), nsmall = 1),"%)",
+          #"\n - ", kmnrisk, " remain in risk pool at T = ", time_admin_censor,
           "\n - GND component: ", round(GND_component, digits = 3)
         )
       )
@@ -110,10 +115,13 @@ gnd_test_manual = function(predicted_risk,
 
   gnd_df <- length(unique(data_curtailed$group)) - 1
 
-  c(
-    df = gnd_df,
-    chi2gw = sum(hl_tab$GND_component),
-    pvalgw = 1 - stats::pchisq(sum(hl_tab$GND_component), gnd_df)
+  hl_tab
+
+  data.frame(
+    GND_df = gnd_df,
+    GND_chisq = sum(hl_tab$GND_component),
+    GND_pvalue = 1 - stats::pchisq(sum(hl_tab$GND_component), gnd_df),
+    row.names = NULL
   )
 
 }
