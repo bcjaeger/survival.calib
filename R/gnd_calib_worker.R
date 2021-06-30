@@ -1,6 +1,6 @@
 
 gnd_calib_worker <- function(data,
-                             time_admin_censor,
+                             time_predict,
                              group_min_events_warn,
                              group_min_events_stop) {
 
@@ -20,10 +20,10 @@ gnd_calib_worker <- function(data,
 
  # if there is an event observed before admin censor time, then
  # update survival estimate, standard error, and number of events
- if(min(.surv$time) <= time_admin_censor){
+ if(min(.surv$time) <= time_predict){
 
   # find the last event time before censoring
-  i <- which.max(.surv$time[.surv$time <= time_admin_censor])
+  i <- which.max(.surv$time[.surv$time <= time_predict])
   est    <- .surv$surv[i]
   stderr <- .surv$std.err[i]
   num    <- .surv$n.risk[i]

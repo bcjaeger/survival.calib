@@ -120,14 +120,8 @@ for(i in seq_along(risk_times)){
                              event_time = flchain$futime[-train_index],
                              event_status = flchain$death[-train_index],
                              group = risk_groups[, i],
-                             time_admin_censor = risk_times[i],
+                             time_predict = risk_times[i],
                              verbose = 0)
-
- # bcj[[i]] <- GND.calib(pred = risk_pred[, i],
- #                       tvar = flchain$futime[-train_index],
- #                       out = flchain$death[-train_index],
- #                       groups = risk_groups[, i],
- #                       adm.cens = risk_times[i])
 
 }
 
@@ -137,7 +131,7 @@ test_that(
  "BCJ code matches original",
  code = {
   for(i in seq_along(risk_times)){
-   expect_equal(as.numeric(bcj[[i]]),
+   expect_equal(as.numeric(bcj[[i]]$statistic),
                 as.numeric(orig[[i]]),
                 ignore_attr = TRUE)
   }

@@ -17,6 +17,13 @@ risk_pred <- predictRisk(risk_mdl,
 
 # check on error messages
 
+gnd_test_auto(predicted_risk = risk_pred,
+              event_time = flchain$futime[-train_index],
+              event_status = flchain$death[-train_index],
+              time_predict = risk_times,
+              group_count_init = 50,
+              verbose = 0)
+
 # group_count_init (lwr bound)
 test_that(
  desc = 'group_count_init min is caught',
@@ -26,7 +33,6 @@ test_that(
                           event_time = flchain$futime[-train_index],
                           event_status = flchain$death[-train_index],
                           time_predict = risk_times,
-                          time_admin_censor = risk_times,
                           group_count_init = 1,
                           verbose = 0),
    regexp = 'group_count_init = 1 should be'
@@ -43,7 +49,6 @@ test_that(
                           event_time = flchain$futime[-train_index],
                           event_status = flchain$death[-train_index],
                           time_predict = c(1, 2),
-                          time_admin_censor = risk_times,
                           group_count_init = 1,
                           verbose = 0),
    regexp = 'time_predict should have length <1>'
@@ -60,7 +65,6 @@ test_that(
                           event_time = flchain$futime[-train_index],
                           event_status = 1+flchain$death[-train_index],
                           time_predict = risk_times,
-                          time_admin_censor = risk_times,
                           group_count_init = 5,
                           verbose = 0),
    regexp = 'event_status should contain values of'
@@ -77,7 +81,6 @@ test_that(
                           event_time = flchain$futime[-train_index],
                           event_status = rep(0, length(risk_pred)),
                           time_predict = risk_times,
-                          time_admin_censor = risk_times,
                           group_count_init = 5,
                           verbose = 0),
    regexp = 'but has no 1 values'

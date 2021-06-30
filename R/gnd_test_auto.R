@@ -7,7 +7,6 @@
 #' @param event_time
 #' @param event_status
 #' @param time_predict
-#' @param time_admin_censor
 #' @param group_count_init
 #' @param group_count_min
 #' @param group_min_events
@@ -22,115 +21,115 @@ gnd_test_auto <- function(predicted_risk,
                           event_time,
                           event_status,
                           time_predict,
-                          time_admin_censor,
+                          group_method = 'lump',
                           group_count_init = 10,
                           group_count_min = 2,
                           group_min_events_warn = 5,
                           group_min_events_stop = 2,
                           verbose = 1) {
 
- check_call(
-  match.call(),
-  expected = list(
-   'predicted_risk' = list(type = 'numeric', lwr = 0, upr = 1),
-   'event_time' = list(type = 'numeric', lwr = 0),
-   'event_status' = list(type = 'numeric', uni = c(0, 1)),
-   'time_predict' = list(type = 'numeric', lwr = 0, length = 1),
-   'time_admin_censor' = list(type = 'numeric', lwr = 0, length = 1),
-   'group_count_init' = list(type = 'numeric', length = 1, lwr = 2),
-   'group_count_min' = list(type = 'numeric', length = 1, lwr = 2),
-   'group_min_events_warn' = list(type = 'numeric', length = 1, lwr = 5),
-   'group_min_events_stop' = list(type = 'numeric', length = 1, lwr = 2),
-   'verbose' = list(type = 'numeric', length = 1, lwr = 0)
+  check_call(
+    match.call(),
+    expected = list(
+      'predicted_risk' = list(type = 'numeric', lwr = 0, upr = 1),
+      'event_time' = list(type = 'numeric', lwr = 0),
+      'event_status' = list(type = 'numeric', uni = c(0, 1)),
+      'time_predict' = list(type = 'numeric', lwr = 0, length = 1),
+      'group_count_init' = list(type = 'numeric', length = 1, lwr = 2),
+      'group_count_min' = list(type = 'numeric', length = 1, lwr = 2),
+      'group_min_events_warn' = list(type = 'numeric', length = 1, lwr = 5),
+      'group_min_events_stop' = list(type = 'numeric', length = 1, lwr = 2),
+      'verbose' = list(type = 'numeric', length = 1, lwr = 0)
+    )
   )
- )
-
- too_few_groups <- FALSE
- group_count <- group_count_init
-
- repeat {
-
-  # cut2 imported from Hmisc
-
-  if(verbose > 0)
-   message("Checking event counts using ", group_count, " risk groups...",
-           appendLF = FALSE)
-
-  group = cut_percentiles(predicted_risk, g = group_count)
 
   status_before_horizon <- event_status
   status_before_horizon[event_time > time_predict] <- 0
 
-  group_event_table <-
-   table(group = group, event_status = status_before_horizon)
+  too_few_groups <- FALSE
+  group_count <- group_count_init
 
-  group_event_counts <-
-   subset(as.data.frame(group_event_table), event_status == 1)
+  repeat {
 
-  if(all(group_event_counts$Freq > group_min_events_warn)){
-   if(verbose > 0) message("okay")
-   break
+    # cut2 imported from Hmisc
+
+    if(verbose > 0)
+      message("Checking event counts using ", group_count, " risk groups...",
+              appendLF = FALSE)
+
+    if(group_count == group_count_init){
+      group = cut_percentiles(predicted_risk, g = group_count)
+    }
+
+    if(group_count < group_count_init){
+
+      group = switch(
+        group_method,
+        "redo" = cut_percentiles(predicted_risk, g = group_count),
+        "lump" = lump_group(group = group,
+                            events = group_event_counts,
+                            min_size = group_min_events_warn)
+      )
+
+
+    }
+
+    group_event_table <-
+      table(group = group, event_status = status_before_horizon)
+
+    group_event_counts <-
+      subset(
+        as.data.frame(group_event_table, stringsAsFactors = FALSE),
+        event_status == 1
+      )
+
+    # Seems silly, but this is needed to keep the groups from getting
+    # character sorted; i.e., 1, 10, 11, ... 19, 2, 20, etc.
+    group_event_counts$group <- as.numeric(group_event_counts$group)
+
+    if(all(group_event_counts$Freq > group_min_events_warn)){
+      if(verbose > 0) message("okay")
+      break
+    }
+
+    group_count <- group_count - 1
+    if(verbose > 0) message("too few; trying again")
+
+    if(group_count < group_count_min){
+      too_few_groups <- TRUE
+      break
+    }
+
   }
 
-  group_count <- group_count - 1
-  if(verbose > 0) message("too few; trying again")
+  if(too_few_groups){
 
-  if(group_count < group_count_min){
-   too_few_groups <- TRUE
-   break
+    GND_fail <- TRUE
+    GND_result <- NULL
+
+
+  } else {
+
+    if(verbose > 0)
+      message("Attempting GND test with ", group_count, " risk groups.",
+              appendLF = verbose > 1)
+
+    GND_result <- gnd_test_manual(
+      predicted_risk = predicted_risk,
+      event_time = event_time,
+      event_status = event_status,
+      group = group,
+      time_predict = time_predict,
+      group_min_events_warn = group_min_events_warn,
+      group_min_events_stop = group_min_events_stop,
+      verbose = max(0, verbose - 1)
+    )
+
+    if(verbose == 1) message("..Done")
+
   }
 
- }
-
- if(too_few_groups){
-
-  GND_fail <- TRUE
-  GND_result <- NULL
-
-
- } else {
-
-  if(verbose > 0)
-   message("Attempting GND test with ", group_count, " risk groups.",
-           appendLF = verbose > 1)
-
-  GND_result <- try(
-   gnd_test_manual(predicted_risk = predicted_risk,
-                   event_time = event_time,
-                   event_status = event_status,
-                   group = group,
-                   time_admin_censor = time_admin_censor,
-                   group_min_events_warn = group_min_events_warn,
-                   group_min_events_stop = group_min_events_stop,
-                   verbose = max(0, verbose - 1)),
-   silent = TRUE
-  )
-
-  if(verbose == 1) message("..Done")
-
-  GND_fail <- inherits(GND_result, 'try-error')
-
- }
-
- if(GND_fail){
-
-  GND_chisq <- NA_real_
-  GND_pvalue <- NA_real_
-  group_count <- NA_real_
-
- } else {
-
-  GND_chisq <- GND_result$GND_chisq
-  GND_pvalue <- GND_result$GND_pvalue
-
- }
-
- data.frame(
-  GND_df = group_count-1,
-  GND_chisq = GND_chisq,
-  GND_pvalue = GND_pvalue,
-  row.names = NULL
- )
+  GND_result
 
 }
 
