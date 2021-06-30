@@ -9,6 +9,7 @@ gnd_test_auto(
   event_time,
   event_status,
   time_predict,
+  group_method = "lump",
   group_count_init = 10,
   group_count_min = 2,
   group_min_events_warn = 5,
@@ -17,10 +18,28 @@ gnd_test_auto(
 )
 }
 \arguments{
-\item{verbose}{}
+\item{predicted_risk}{(\emph{numeric vector}) predicted risk values for the
+event of interest at or before a given time.}
+
+\item{event_time}{(\emph{numeric vector}) observed event times'}
+
+\item{event_status}{(\emph{numeric vector}) observed event status. The values
+of this vector should be 0 (event censored) and 1 (event observed).}
+
+\item{time_predict}{(\emph{numeric value}) the time that risk predictions are
+computed for. For example, to assess calibration of 10-year predicted
+risk, set \code{time_predict = 10}.}
+
+\item{group_min_events_warn}{(\emph{numeric value}) The lowest event count
+within a risk group that will not cause a warning (see details).}
+
+\item{group_min_events_stop}{(\emph{numeric value}) The lowest event count
+within a risk group that will not cause a hard stop (see details).}
+
+\item{verbose}{(\emph{numeric value})}
 }
 \value{
-
+an object of class 'survival.calib_gnd_test'
 }
 \description{
 Modified Greenwood-Nam D'Agostino Test

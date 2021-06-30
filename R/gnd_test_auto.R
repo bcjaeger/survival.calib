@@ -2,17 +2,17 @@
 
 #' Modified Greenwood-Nam D'Agostino Test
 #'
-#'
-#' @param predicted_risk
-#' @param event_time
-#' @param event_status
-#' @param time_predict
+#' @inheritParams gnd_test_manual
+#' @param group_method (_character value_; 'lump' or 'redo') If 'lump', then
+#'   a 'lumping' procedure will be applied whenever a group has less than
+#'   `group_min_events_warn` events. The lumping procedure will identify
+#'   whichever group has the lowest event count and assign members of that
+#'   group to the
 #' @param group_count_init
 #' @param group_count_min
-#' @param group_min_events
-#' @param verbose
 #'
-#' @return
+#' @return an object of class 'survival.calib_gnd_test'
+#'
 #' @export
 #'
 #' @examples
@@ -50,8 +50,6 @@ gnd_test_auto <- function(predicted_risk,
   group_count <- group_count_init
 
   repeat {
-
-    # cut2 imported from Hmisc
 
     if(verbose > 0)
       message("Checking event counts using ", group_count, " risk groups...",

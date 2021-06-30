@@ -4,7 +4,7 @@
 \alias{cut_percentiles}
 \title{Cut data into percentile groups}
 \usage{
-cut_percentiles(x, g)
+cut_percentiles(x, g, na.rm = FALSE, type = 7)
 }
 \arguments{
 \item{x}{(\emph{numeric vector}) a numeric vector which will be converted to
@@ -23,6 +23,6 @@ to create an input value for \code{\link[=gnd_test_manual]{gnd_test_manual()}}  
 }
 \examples{
 
-cut_percentiles(rnorm(100), g = 10)
+cut_percentiles(sort(rnorm(100)), g = 10)
 
 }

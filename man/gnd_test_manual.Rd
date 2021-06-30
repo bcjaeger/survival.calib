@@ -58,7 +58,29 @@ Therefore, the default value of \code{group_min_events_stop} is 2.
 }
 \examples{
 
+library(survival)
+library(riskRegression)
+train_index <- 1:3000
 
+risk_mdl <- coxph(data = flchain[train_index, ],
+                  x = TRUE,
+                  formula = Surv(futime, death)~age+sex+flc.grp+lambda)
+
+time_predict <- 4000
+
+risk_pred <- predictRisk(risk_mdl,
+                         newdata = flchain[-train_index, ],
+                         times = time_predict)
+
+#split into deciles
+risk_groups <- cut_percentiles(risk_pred, g = 10)
+
+gnd_test_manual(predicted_risk = risk_pred,
+                event_time = flchain$futime[-train_index],
+                event_status = flchain$death[-train_index],
+                time_predict = time_predict,
+                group = risk_groups,
+                verbose = 0)
 }
 \references{
 Demler, O.V., Paynter, N.P. and Cook, N.R., 2015. Tests of calibration and

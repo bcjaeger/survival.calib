@@ -52,8 +52,30 @@
 #'
 #' @examples
 #'
-
+#' library(survival)
+#' library(riskRegression)
+#' train_index <- 1:3000
 #'
+#' risk_mdl <- coxph(data = flchain[train_index, ],
+#'                   x = TRUE,
+#'                   formula = Surv(futime, death)~age+sex+flc.grp+lambda)
+#'
+#' time_predict <- 4000
+#'
+#' risk_pred <- predictRisk(risk_mdl,
+#'                          newdata = flchain[-train_index, ],
+#'                          times = time_predict)
+#'
+#' #split into deciles
+#' risk_groups <- cut_percentiles(risk_pred, g = 10)
+#'
+#' gnd_test_manual(predicted_risk = risk_pred,
+#'                 event_time = flchain$futime[-train_index],
+#'                 event_status = flchain$death[-train_index],
+#'                 time_predict = time_predict,
+#'                 group = risk_groups,
+#'                 verbose = 0)
+
 gnd_test_manual = function(predicted_risk,
                            event_status,
                            event_time,
@@ -177,53 +199,3 @@ gnd_test_manual = function(predicted_risk,
 
 
 
-#' Print GND Test Results
-#'
-#' @param x an object of class `survival.calib_gnd_test`
-#' @param digits minimal number of significant digits to print.
-#' @return nothing. Output is printed to console.
-#' @export
-#'
-print.survival.calib_gnd_test <- function(x,
-                                          digits = 3,
-                                          max_rows_to_print = 5){
-
-  msg <- paste0(
-    "-----------------------------------------------------\n",
-    "\n- Greenwood-Nam-D'Agostino (GND) Goodness-of-Fit Test\n",
-    "\n-- Chi-square test statistic: ", round(x$statistic$GND_chisq, digits),
-    "\n-- degrees of freedom: ", x$statistic$GND_df,
-    "\n-- P-value for lack of fit: ",
-    table.glue::table_pvalue(x$statistic$GND_pvalue),
-    "\n-- Warnings: ", x$warnings, "\n",
-    "\n-----------------------------------------------------\n"
-  )
-
-
-  data_to_print <- x$data[, c("group_label",
-                              "group_n",
-                              "events_observed",
-                              "events_expected")]
-
-  if(max_rows_to_print < nrow(data_to_print))
-    msg <- paste(msg, "\n- Events data by group (truncated):\n\n")
-  else
-    msg <- paste(msg, "\n- Events data by group:\n\n")
-
-  within(
-    data = data_to_print,
-    expr = {
-      events_expected = round(events_expected, digits)
-    }
-  )
-
-  cat(msg)
-  print(data_to_print[seq(max_rows_to_print), ],
-        digits = digits,
-        row.names = FALSE)
-
-  if(max_rows_to_print < nrow(data_to_print))
-    cat("\n+", nrow(data_to_print) - max_rows_to_print,"more rows")
-
-
-}
