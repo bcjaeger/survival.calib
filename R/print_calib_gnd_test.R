@@ -3,13 +3,26 @@
 #' Print GND Test Results
 #'
 #' @param x an object of class `survival.calib_gnd_test`
-#' @param digits minimal number of significant digits to print.
+#' @param ... additional arguments. Eligible inputs are:
+#'  - __digits__: minimal number of significant digits to print.
+#'  - __max_rows_to_print__: maximum number of rows to print
+#'
+#'
 #' @return nothing. Output is printed to console.
 #' @export
 #'
-print.survival.calib_gnd_test <- function(x,
-                                          digits = 3,
-                                          max_rows_to_print = 5){
+print.survival.calib_gnd_test <- function(x, ...){
+
+  .dots <- list(...)
+
+  if(is.null(.dots$digits))
+    digits <- 3
+  else
+    digits <- .dots$digits
+  if(is.null(.dots$max_rows_to_print))
+    max_rows_to_print <- 5
+  else
+    max_rows_to_print <- .dots$max_rows_to_print
 
  msg <- paste0(
   "-----------------------------------------------------\n",

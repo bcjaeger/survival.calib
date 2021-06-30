@@ -30,7 +30,8 @@
 #' @param group_min_events_stop (_numeric value_) The lowest event count
 #'   within a risk group that will not cause a hard stop (see details).
 #'
-#' @param verbose (_numeric value_)
+#' @param verbose (_integer value_) If 0, no output will be printed.
+#'   If 1, details about events in each group will be printed.
 #'
 #' @details
 #'
@@ -84,6 +85,24 @@ gnd_test_manual = function(predicted_risk,
                            group_min_events_warn = 5,
                            group_min_events_stop = 2,
                            verbose = 0){
+
+
+  check_call(
+    match.call(),
+    expected = list(
+      'predicted_risk' = list(type = 'numeric', lwr = 0, upr = 1),
+      'event_status' = list(type = 'numeric', uni = c(0, 1)),
+      'event_time' = list(type = 'numeric', lwr = 0),
+      'time_predict' = list(type = 'numeric', lwr = 0, length = 1),
+      'group' = list(type = 'numeric', lwr = 0),
+      'group_min_events_warn' = list(type = 'numeric', length = 1, lwr = 5),
+      'group_min_events_stop' = list(type = 'numeric', length = 1, lwr = 2),
+      'verbose' = list(type = 'numeric', length = 1, lwr = 0)
+    )
+  )
+
+
+
 
   data_curtailed = data.frame(
     # predicted risk of event

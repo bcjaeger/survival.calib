@@ -30,31 +30,6 @@ check_arg_type <- function(arg_value, arg_name, expected_type){
 
 }
 
-check_arg_is <- function(arg_value, arg_name, expected_class){
-
-  arg_is <- inherits(arg_value, expected_class)
-
-  if (!arg_is) {
-
-    expected_classes <- glue::glue_collapse(x = expected_class,
-                                            sep = ', ',
-                                            last = ' or ')
-
-    arg_classes <- glue::glue_collapse(x = class(arg_value),
-                                       sep = ', ',
-                                       last = ' or ')
-
-    error_msg <- glue::glue(
-      "{arg_name} should inherit from class <{expected_classes}>",
-      "\nbut instead inherits from <{arg_classes}>"
-    )
-
-    stop(as.character(error_msg), call. = FALSE)
-
-  }
-
-}
-
 check_arg_uni <- function(arg_value, arg_name, expected_uni){
 
   if(is.null(expected_uni)) return(invisible())
@@ -175,36 +150,6 @@ check_arg_is_valid <- function(arg_value, arg_name, valid_options) {
 
 }
 
-check_input <- function(arg_name, arg_value, expected = list()){
-
-  if(!is.null(expected$type))
-    check_arg_type(arg_name = arg_name,
-                   arg_value = arg_value,
-                   expected_type = expected$type)
-
-  if(!is.null(expected$length))
-    check_arg_length(arg_name = arg_name,
-                     arg_value = arg_value,
-                     expected_length = expected$length)
-
-  if(!is.null(expected$lwr) || !is.null(expected$upr))
-    check_arg_bounds(arg_name = arg_name,
-                     arg_value = arg_value,
-                     bound_lwr = expected$lwr,
-                     bound_upr = expected$upr)
-
-  if(!is.null(expected$class))
-    check_arg_is(arg_name = arg_name,
-                 arg_value = arg_value,
-                 expected_class = expected$class)
-
-  if(!is.null(expected$options))
-    check_arg_is_valid(arg_name = arg_name,
-                       arg_value = arg_value,
-                       valid_options = expected$options)
-
-}
-
 check_call <- function(call, expected){
 
   arg_names <- setdiff( names(call), '' )
@@ -274,49 +219,27 @@ check_call <- function(call, expected){
 
 }
 
-check_dots_are_characters <- function(.dots){
-
-  .dots_are_chars <- sapply(eval(.dots), is.character)
-
-  if(!all(.dots_are_chars)){
-
-    wrong_types <- which(!.dots_are_chars) + 1
-
-    wrong_objects <- vector(mode = 'character', length = length(wrong_types))
-
-
-    for(i in seq_along(wrong_types)){
-      wrong_objects[i] <- paste0("<",deparse(.dots[[wrong_types[i]]]),">")
-    }
-
-    if(length(wrong_types) == 1) {
-      was_or_were <- 'was'
-      this_or_these <- 'this'
-      obj <- 'object'
-      nm <- 'name'
-    } else {
-      was_or_were <- 'were'
-      this_or_these <- 'these'
-      obj <- 'objects'
-      nm <- 'names'
-    }
-
-    wrong_objects <- glue::glue_collapse(wrong_objects,
-                                         sep = ', ',
-                                         last = ' and ')
-
-
-    message <- glue::glue(
-      "non-character {obj} {wrong_objects} ",
-      "{was_or_were} included in ...\n",
-      "Did you forget to specify the input ",
-      "{nm} for {this_or_these} {obj}?"
-    )
-
-    stop(message, call. = FALSE)
-
-  }
-
-  invisible()
-
-}
+# check_arg_is <- function(arg_value, arg_name, expected_class){
+#
+#   arg_is <- inherits(arg_value, expected_class)
+#
+#   if (!arg_is) {
+#
+#     expected_classes <- glue::glue_collapse(x = expected_class,
+#                                             sep = ', ',
+#                                             last = ' or ')
+#
+#     arg_classes <- glue::glue_collapse(x = class(arg_value),
+#                                        sep = ', ',
+#                                        last = ' or ')
+#
+#     error_msg <- glue::glue(
+#       "{arg_name} should inherit from class <{expected_classes}>",
+#       "\nbut instead inherits from <{arg_classes}>"
+#     )
+#
+#     stop(as.character(error_msg), call. = FALSE)
+#
+#   }
+#
+# }

@@ -38,7 +38,8 @@ within a risk group that will not cause a warning (see details).}
 \item{group_min_events_stop}{(\emph{numeric value}) The lowest event count
 within a risk group that will not cause a hard stop (see details).}
 
-\item{verbose}{(\emph{numeric value})}
+\item{verbose}{(\emph{integer value}) If 0, no output will be printed.
+If 1, details about events in each group will be printed.}
 }
 \value{
 an object of class 'survival.calib_gnd_test'

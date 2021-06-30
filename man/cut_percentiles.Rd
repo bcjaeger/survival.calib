@@ -12,6 +12,12 @@ a vector of integers by cutting.}
 
 \item{g}{(\emph{numeric value}) the desired number of percentile groups. For
 example, \code{g = 10} gives decile groups.}
+
+\item{na.rm}{(\emph{logical value}) if \code{TRUE}, any \code{NA} and \code{NaN} values
+are removed from \code{x} before the quantiles are computed.}
+
+\item{type}{(\emph{integer value between 1 and 9}) see \link[stats:quantile]{quantile} for
+details.}
 }
 \value{
 a numeric vector with integer values.
