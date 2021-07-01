@@ -17,17 +17,25 @@ help users apply these tests in a highly customized way (see
 
 ## Installation
 
-You can install the released version of survival.calib from
-[CRAN](https://CRAN.R-project.org) with:
+<!-- You can install the released version of survival.calib from [CRAN](https://CRAN.R-project.org) with: -->
+
+<!-- ``` r -->
+
+<!-- install.packages("survival.calib") -->
+
+<!-- ``` -->
+
+You can install `survival.calib` from GitHub with:
 
 ``` r
-install.packages("survival.calib")
+remotes::install_github("bcjaeger/survival.calib")
 ```
 
 ## Example
 
 Let’s apply the Namwood-Green-D’Agostino (GND) test to assess
-calibration of a proportional hazards model.
+calibration of a proportional hazards model. First, we load packages and
+curate some data for modeling.
 
 ``` r
 
