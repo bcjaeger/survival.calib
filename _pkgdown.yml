@@ -1,3 +1,5 @@
+url: https://bcjaeger.github.io/survival.calib
+
 reference:
 - title: Greenwood-Nam-D'Agostino (GND) test
   desc: Test for mis-calibration in the survival setting.
