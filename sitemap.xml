@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/index.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/cut_percentiles.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/gnd_test_auto.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/gnd_test_manual.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/print.survival.calib_gnd_test.html</loc>
+  </url>
+</urlset>

@@ -2,5 +2,8 @@ pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles: {}
-last_built: 2021-07-01T14:18Z
+last_built: 2021-07-01T14:30Z
+urls:
+  reference: https://bcjaeger.github.io/survival.calib/reference
+  article: https://bcjaeger.github.io/survival.calib/articles
 
