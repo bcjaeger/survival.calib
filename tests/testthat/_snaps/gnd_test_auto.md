@@ -5,9 +5,9 @@
         -train_index], event_status = flchain$death[-train_index], time_predict = risk_times,
       group_count_init = 50, verbose = 0)
     Output
-      -----------------------------------------------------
+      -------------------------------------------------------
       
-      - Greenwood-Nam-D'Agostino (GND) Goodness-of-Fit Test
+      - Greenwood-Nam-D'Agostino (GND) Mis-calibration Test
       
       -- Chi-square test statistic: 29.434
       -- degrees of freedom: 39

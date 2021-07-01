@@ -1,6 +1,13 @@
 
 
-#' Modified Greenwood-Nam D'Agostino Test
+#' Greenwood-Nam-D'Agostino (GND) Test on Autopilot
+#'
+#' The GND test is based on groupwise error rates for observed versus
+#'   expected risk, and the test is unstable when any group contains
+#'   < 5 events (see Demler et al.). The purpose of `gnd_test_auto` is
+#'   to automatically check event counts in risk groups and, if
+#'   necessary, collapse risk groups so that every group has an
+#'   event count greater than a given threshold.
 #'
 #' @inheritParams gnd_test_manual
 #'
@@ -24,6 +31,11 @@
 #'  will be printed.
 #'
 #' @return an object of class 'survival.calib_gnd_test'
+#'
+#' @references
+#'   Demler, O.V., Paynter, N.P. and Cook, N.R., 2015. Tests of calibration and
+#'   goodness‐of‐fit in the survival setting. *Statistics in medicine*, 34(10),
+#'   pp.1659-1680. DOI: 10.1002/sim.6428
 #'
 #' @export
 #'

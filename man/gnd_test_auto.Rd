@@ -2,7 +2,7 @@
 % Please edit documentation in R/gnd_test_auto.R
 \name{gnd_test_auto}
 \alias{gnd_test_auto}
-\title{Modified Greenwood-Nam D'Agostino Test}
+\title{Greenwood-Nam-D'Agostino (GND) Test on Autopilot}
 \usage{
 gnd_test_auto(
   predicted_risk,
@@ -59,7 +59,12 @@ will be printed.}
 an object of class 'survival.calib_gnd_test'
 }
 \description{
-Modified Greenwood-Nam D'Agostino Test
+The GND test is based on groupwise error rates for observed versus
+expected risk, and the test is unstable when any group contains
+< 5 events (see Demler et al.). The purpose of \code{gnd_test_auto} is
+to automatically check event counts in risk groups and, if
+necessary, collapse risk groups so that every group has an
+event count greater than a given threshold.
 }
 \examples{
 # packages
@@ -100,4 +105,9 @@ gnd_test_auto(predicted_risk = risk_pred,
               group_count_init = 10,
               group_count_min = 5,
               verbose = 2)
+}
+\references{
+Demler, O.V., Paynter, N.P. and Cook, N.R., 2015. Tests of calibration and
+goodness‐of‐fit in the survival setting. \emph{Statistics in medicine}, 34(10),
+pp.1659-1680. DOI: 10.1002/sim.6428
 }

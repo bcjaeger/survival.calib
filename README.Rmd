@@ -17,9 +17,10 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![Codecov test coverage](https://codecov.io/gh/bcjaeger/survival.calib/branch/master/graph/badge.svg)](https://codecov.io/gh/bcjaeger/survival.calib?branch=master)
+[![R-CMD-check](https://github.com/bcjaeger/survival.calib/workflows/R-CMD-check/badge.svg)](https://github.com/bcjaeger/survival.calib/actions)
 <!-- badges: end -->
 
-The goal of survival.calib is to ...
+The goal of `survival.calib` is to provide convenient access to tests for mis-calibration in the survival setting. It provides functions to help users apply these tests in a highly customized way (see `gnd_test_manual`) or following a protocol that the developers recommend (see `gnd_test_auto`).
 
 ## Installation
 
@@ -31,25 +32,106 @@ install.packages("survival.calib")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+Let's apply the Namwood-Green-D'Agostino (GND) test to assess calibration of a proportional hazards model.
 
-```{r example}
+```{r example-libraries}
+
 library(survival.calib)
-## basic example code
+library(survival)
+library(riskRegression)
+
+model_vars <- c('futime', 'death', 'age', 'sex', 'flc.grp', 'lambda')
+model_data <- survival::flchain[, model_vars]
+
+head(model_data)
+
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Next, we 
 
-```{r cars}
-summary(cars)
+1. designate a set of rows that will define the training set,
+1. fit a model to the training set,
+1. predict risk for mortality in a testing set.
+
+```{r}
+
+# step 1
+set.seed(730)
+train_index <- sample(x = nrow(model_data), size = 2000)
+
+# step 2
+risk_mdl <- coxph(
+ formula = Surv(futime, death) ~ age + sex + flc.grp + lambda,
+ data = flchain[train_index,],
+ x = TRUE
+)
+
+# step 3
+time_predict <- 4000
+risk_pred <- predictRisk(risk_mdl,
+                         newdata = flchain[-train_index, ],
+                         times = time_predict)
+
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/master/examples>.
+Once we have predicted risk values, we can go in two directions: 
 
-You can also embed plots, for example:
+1. Create risk groups by hand and pass the risk group assignments into `gnd_test_manual`.
+1. Use `gnd_test_auto`, which creates risk groups for you.
 
-```{r pressure, echo = FALSE}
-plot(pressure)
+We'll show both approaches.
+
+### GND test (manual approach)
+
+The manual GND test requires a `group` input value that designates which group each observation in the testing data belongs to. Creation of the `group` input is up to the user, although there are functions that help, e.g., `cut_percentiles` will create quantile groups for you. 
+
+```{r}
+
+# Create risk groups:
+risk_groups <- cut_percentiles(risk_pred, g = 10)
+
+# supply predicted risk, observed outcomes, 
+# time of prediction, and group assignments
+# to the manual GND test function.
+gnd_result_manual <- 
+ gnd_test_manual(predicted_risk = risk_pred,
+                 event_time = flchain$futime[-train_index],
+                 event_status = flchain$death[-train_index],
+                 time_predict = time_predict,
+                 group = risk_groups,
+                 verbose = 0)
+
+# peak at the results
+gnd_result_manual
+
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+### GND test (automatic approach)
+
+Demler et al. show that the GND test has high variability if there are less than 5 events in any of the risk groups. When this occurs, the authors recommend lumping groups with < 5 events into the nearest risk group. The `gnd_test_auto` automates this approach, allowing users to forego manual creation of risk groups.  For example, below we apply `gnd_test_auto` with `group_count_init = 45`, which initiates the following algorithm: 
+
+1. Create 45 groups based on quantiles of predicted risk.
+1. Check the event counts in each group
+1. If any groups have < 5 events, collapse the group with fewest events into its neighbor, and repeat step 2
+1. run `gnd_test_manual` with the (potentially modified) groups.
+
+```{r}
+
+gnd_result_auto <- 
+ gnd_test_auto(predicted_risk = risk_pred,
+               event_time = flchain$futime[-train_index],
+               event_status = flchain$death[-train_index],
+               time_predict = time_predict,
+               group_count_init = 45,
+               group_method = 'lump',
+               verbose = 1)
+
+gnd_result_auto
+
+```
+
+You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, don't use 45 groups (the default value for `group_count_init` is 10).
+
+# References
+
+Demler, O.V., Paynter, N.P. and Cook, N.R., 2015. Tests of calibration and goodness‐of‐fit in the survival setting. *Statistics in medicine*, 34(10), pp.1659-1680. DOI: 10.1002/sim.6428

@@ -149,11 +149,6 @@ gnd_test_manual = function(predicted_risk,
 
   }
 
-  # TODO Add this to details of documentation
-  # , and this may cause high variability in the GND test results
-  # (see Demler, Paynter, Cook 'Tests of Calibration and Goodness of Fit
-  #   in the Survival Setting, DOI: 10.1002/sim.6428).",
-
   table_hoslem <- with(
     data_curtailed,
     data.frame(

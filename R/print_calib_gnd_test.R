@@ -25,8 +25,8 @@ print.survival.calib_gnd_test <- function(x, ...){
     max_rows_to_print <- .dots$max_rows_to_print
 
  msg <- paste0(
-  "-----------------------------------------------------\n",
-  "\n- Greenwood-Nam-D'Agostino (GND) Goodness-of-Fit Test\n",
+  "-------------------------------------------------------\n",
+  "\n- Greenwood-Nam-D'Agostino (GND) Mis-calibration Test\n",
   "\n-- Chi-square test statistic: ", round(x$statistic$GND_chisq, digits),
   "\n-- degrees of freedom: ", x$statistic$GND_df,
   "\n-- P-value for lack of fit: ",

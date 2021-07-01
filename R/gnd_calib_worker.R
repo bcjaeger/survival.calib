@@ -24,6 +24,12 @@ gnd_calib_worker <- function(data,
 
   # find the last event time before censoring
   i <- which.max(.surv$time[.surv$time <= time_predict])
+
+  # If this happens to be the last event in the entire dataset,
+  # the variance will be infinite! A workaround is to go back
+  # 1 time value if the estimate == 0
+  while(is.infinite(.surv$std.err[i])) i <- i-1
+
   est    <- .surv$surv[i]
   stderr <- .surv$std.err[i]
   num    <- .surv$n.risk[i]

@@ -1,0 +1,11 @@
+reference:
+- title: Greenwood-Nam-D'Agostino (GND) test
+  desc: Test for mis-calibration in the survival setting.
+- contents:
+  - starts_with("gnd_test")
+  - ends_with("gnd_test")
+- title: Helper functions
+  desc: Useful helpers for the GND test.
+- contents:
+  - starts_with('cut_')
+
