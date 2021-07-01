@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
 # survival.calib
 
 <!-- badges: start -->
-[![Codecov test coverage](https://codecov.io/gh/bcjaeger/survival.calib/branch/master/graph/badge.svg)](https://codecov.io/gh/bcjaeger/survival.calib?branch=master)
+[![codecov](https://codecov.io/gh/bcjaeger/survival.calib/branch/master/graph/badge.svg?token=V522BP9QGS)](https://codecov.io/gh/bcjaeger/survival.calib)
 [![R-CMD-check](https://github.com/bcjaeger/survival.calib/workflows/R-CMD-check/badge.svg)](https://github.com/bcjaeger/survival.calib/actions)
 <!-- badges: end -->
 
