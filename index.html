@@ -83,14 +83,18 @@
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h2>
-<p>You can install the released version of survival.calib from <a href="https://CRAN.R-project.org">CRAN</a> with:</p>
+<!-- You can install the released version of survival.calib from [CRAN](https://CRAN.R-project.org) with: -->
+<!-- ``` r -->
+<!-- install.packages("survival.calib") -->
+<!-- ``` -->
+<p>You can install <code>survival.calib</code> from GitHub with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"survival.calib"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"bcjaeger/survival.calib"</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="example" class="section level2">
 <h2 class="hasAnchor">
 <a href="#example" class="anchor"></a>Example</h2>
-<p>Let’s apply the Namwood-Green-D’Agostino (GND) test to assess calibration of a proportional hazards model.</p>
+<p>Let’s apply the Namwood-Green-D’Agostino (GND) test to assess calibration of a proportional hazards model. First, we load packages and curate some data for modeling.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcjaeger.github.io/survival.calib">survival.calib</a></span><span class="op">)</span>
