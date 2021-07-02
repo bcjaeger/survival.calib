@@ -7,6 +7,7 @@
 
 [![codecov](https://codecov.io/gh/bcjaeger/survival.calib/branch/master/graph/badge.svg?token=V522BP9QGS)](https://codecov.io/gh/bcjaeger/survival.calib)
 [![R-CMD-check](https://github.com/bcjaeger/survival.calib/workflows/R-CMD-check/badge.svg)](https://github.com/bcjaeger/survival.calib/actions)
+[![DOI](https://zenodo.org/badge/379621580.svg)](https://zenodo.org/badge/latestdoi/379621580)
 <!-- badges: end -->
 
 The goal of `survival.calib` is to provide convenient access to tests
