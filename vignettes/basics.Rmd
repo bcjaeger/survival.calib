@@ -1,0 +1,389 @@
+---
+title: "The basics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The basics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+This vignette covers the core philosophy of `survival.calib` and an extended example where the calibration of a single model is assessed and summarized. 
+
+## Calibration assessment philosophy
+
+Calibration is an important metric of model performance, particularly for models that could be used in clinical practice. The assessment of calibration should encompass multiple approaches, including: 
+
+1. _Visual assessment_, e.g., by inspecting a calibration slope curve
+
+1. _Quantitative assessment_, e.g., by computing the integrated calibration index.
+
+1. _Statistical assessment_, e.g., by performing a test for miscalibration
+
+
+The purpose of `survival.calib` is to make these approaches accessible and complement one another. The purpose of this vignette is to show how one would use `survival.calib` to do that.
+
+```{r setup, message=FALSE}
+
+library(survival.calib)
+library(survival)
+library(riskRegression)
+library(table.glue)
+library(ggplot2)
+
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+
+```
+
+## Data
+
+For this example, we'll use a standard dataset, `survival::pbc`, with some very light modifications.
+
+```{r}
+
+# drop rows with missing values for simplicity
+data_init <- na.omit(flchain)
+
+data_init$chapter <- NULL
+
+head(data_init)
+
+```
+
+We'll also use a simple split of the data for training and testing.
+
+```{r}
+
+n_obs_total <- nrow(data_init)
+n_obs_train <- round(n_obs_total * 2/3)
+
+set.seed(32987)
+train_index <- sample(n_obs_total, size = n_obs_train)
+
+data_train <- data_init[train_index, ]
+data_test <- data_init[-train_index, ]
+
+```
+
+## Model fitting
+
+Suppose we are fitting a model that uses all variables available in `data_train` to predict risk for mortality in `data_test` between baseline and `time_predict = 1000` days after baseline.
+
+```{r}
+
+
+model <- coxph(Surv(futime, death) ~ ., 
+               data = data_train,
+               x = TRUE)
+
+# compute predicted risk at 1000 days post baseline
+time_predict <- 1000
+
+predrisk <- predictRisk(model, newdata = data_test, times = time_predict)
+
+cal <- calib_new(pred_risk = predrisk,
+                 pred_horizon = time_predict,
+                 event_status = data_test$death,
+                 event_time = data_test$futime)
+
+
+```
+
+## Calibration assessment; Visual
+
+Our first method for calibration assessment is visual, and uses the method described in Austin, Harrell and Klaveren, which uses hazard regression (`hare`) to estimate the relationship between the observed outcome and predicted risk probabilities. 
+
+```{r}
+
+calslope_hare <- calib_slope_hare(predicted_risk = predrisk,
+                                  event_status = data_test$death,
+                                  event_time = data_test$futime,
+                                  time_predict = time_predict)
+
+calslope_hare
+
+```
+
+We can visualize data stored in `calslope_hare` to assess calibration of the model in testing data.
+
+```{r}
+
+
+fig_cal_slopes <- ggplot(calslope_hare$data) + 
+  aes(x = predicted, y = observed) +
+  geom_line() + 
+  geom_abline(col = 'grey', linetype = 2, intercept = 0, slope = 1) + 
+  scale_x_continuous(limits = c(0,1), 
+                     expand = c(0,0),
+                     breaks = seq(0, 1, by = 0.2),
+                     labels = paste0(seq(0, 100, by = 20),"%")) + 
+  scale_y_continuous(limits = c(0, 1), 
+                     breaks = seq(0, 1, by = 0.2),
+                     labels = paste0(seq(0, 100, by = 20),"%")) +
+  theme_bw() + 
+  theme(panel.grid = element_blank())
+
+fig_cal_slopes
+
+```
+
+### Predicted risk distribution
+
+It's standard practice to show the distribution of predicted risk underneath the slope of a calibration slope plot. For this visualization, we can use `predrisk_bin_segments`, which creates a dataframe containing all of the aesthetics required for `geom_segment()`. 
+
+```{r}
+
+data_segment <- predrisk_bin_segments(x = predrisk, 
+                                      event_status = data_test$death,
+                                      event_time = data_test$futime,
+                                      time_predict = time_predict,
+                                      bin_count = 100,
+                                      bin_yintercept = 0,
+                                      bin_length = 1)
+
+# this is just some aesthetic recoding to make the next plot look nice
+data_segment$event_status <- factor(
+  x = data_segment$event_status,
+  levels = c(1, 0),
+  labels = c("Yes", "No")
+)
+
+head(data_segment)
+
+```
+
+The `data_segment` dataframe is easy to use with `ggplot2::geom_segment()`, as shown by the code below
+
+```{r, message=FALSE}
+
+
+fig_cal_slopes_histo <- fig_cal_slopes + 
+  scale_y_continuous(limits = c(-0.1, 1), 
+                     breaks = seq(0, 1, by = 0.2),
+                     labels = paste0(seq(0, 100, by = 20),"%")) +
+  geom_hline(yintercept = 0, linetype = 2, color = 'grey') +
+  geom_segment(data = data_segment, 
+               inherit.aes = FALSE,
+               size = 4,
+               mapping = aes(x = x, 
+                             y = y,
+                             color = event_status,
+                             xend = xend, 
+                             yend = yend)) + 
+  theme(legend.position = c(0.8, 0.3),
+        legend.background = element_rect(fill = NULL),
+        legend.title.align = 0) +
+  labs(color = 'Event status') + 
+  scale_color_manual(values = c('black', 'grey'))
+
+fig_cal_slopes_histo
+
+```
+
+## Calibration assessment; Quantitative
+
+Our second method for calibration assessment is using quantitative summaries based on the difference between predicted and observed risk. These summaries are based on the method described in Austin, Harrell and Klaveren. Let $\hat{P}_{t}$ denote the predicted probability of having an event prior to time $t$ and let $\hat{P}_t^c$ denote the predicted probability based on the smoothed calibration curve from hazard regression, which estimates the observed probability of the event conditional on the predicted probability. Define $\abs{\hat{P}_{t} - \hat{P}_t^c}$ as absolute calibration error. Using the absolute calibration error, we compute these numeric summaries:
+
+- _Integrated calibration index (ICI)_, the mean of absolute calibration error
+
+- _E50_, the median of absolute calibration error.
+
+- _E90_, the 90th percentile of absolute calibration error.
+
+- _Emax_, the maximum value of absolute calibration error.
+
+We can access these values from `calslope_hare`,
+
+```{r}
+
+calslope_hare$summary
+
+```
+
+and we can also lay these summaries into the figure that we have built up throughout this vignette:
+
+```{r}
+
+
+rspec <- round_using_decimal(round_spec(), digits = 3)
+
+annotate_label <- table_glue(
+  'Integrated calibration index: {calslope_hare$summary$ici}
+  E50: {calslope_hare$summary$e50}
+  E90: {calslope_hare$summary$e90}
+  Emax: {calslope_hare$summary$emax}',
+  rspec = rspec
+)
+
+
+fig_cal_slopes_histo_annotate <-
+  fig_cal_slopes_histo + 
+  annotate(
+    geom = 'text',
+    x = 0.05, 
+    y = 0.80,
+    hjust = 0,
+    label = annotate_label
+  )
+
+fig_cal_slopes_histo_annotate
+
+```
+
+
+## Calibration assessment; Statistical
+
+Our third method for calibration assessment is statistical. We use the method described in Demler, Paynter, and Cook (2015), which uses a modified Nam-D'Agostino test, i.e. the Greenwood-Nam-D'Agostino (`gnd`) test, to determine whether the differences between observed and predicted risk for groups of data exceeds the threshold of differences we would expect to see from a model with adequate calibration. In this case, we do not have evidence of miscalibration (p-value = 0.171).
+
+```{r}
+
+caltest_gnd <- calib_test_gnd(predicted_risk = predrisk,
+                              event_status = data_test$death,
+                              event_time = data_test$futime,
+                              time_predict = time_predict,
+                              group_count_init = 8)
+
+caltest_gnd
+
+```
+
+Notably, this test provides us with more than just a p-value. It also gives a set of points and intervals that illustrate the relationship between predicted and observed risk. The summary p-value and illustrative points are easily added to our figure, leading to a fairly comprehensive visualization of this model's calibration:
+
+```{r}
+
+
+annotate_label_with_pval <- table_glue(
+  'P-value for miscalibration: {caltest_gnd$statistic$GND_pvalue}
+  Integrated calibration index: {calslope_hare$summary$ici}
+  E50: {calslope_hare$summary$e50}
+  E90: {calslope_hare$summary$e90}
+  Emax: {calslope_hare$summary$emax}',
+  rspec = rspec
+)
+
+fig_final <- fig_cal_slopes_histo + 
+  annotate(
+    geom = 'text',
+    x = 0.05, 
+    y = 0.80,
+    hjust = 0,
+    label = annotate_label_with_pval
+  ) + 
+  geom_pointrange(
+    data = caltest_gnd$data,
+    mapping = aes(x = percent_expected,
+                  y = percent_observed,
+                  ymin = percent_observed - 1.96 * sqrt(variance),
+                  ymax = percent_observed + 1.96 * sqrt(variance)),
+    shape = 21,
+    fill = 'grey',
+    color = 'black')
+
+fig_final
+
+```
+
+# Resampling? Not a problem
+
+```{r}
+
+# set.seed(32987)
+# 
+# mccv_count <- 100
+# 
+# data_segment_container <- vector(mode = 'list', length = mccv_count)
+# data_calslope_container <- vector(mode = 'list', length = mccv_count)
+# 
+# for(i in seq(mccv_count)){
+#   
+#   train_index <- sample(n_obs_total, size = n_obs_train)
+#   data_train <- data_init[train_index, ]
+#   data_test <- data_init[-train_index, ]
+#   
+#   model <- coxph(Surv(futime, death) ~ ., 
+#                data = data_train,
+#                x = TRUE)
+#   
+#   predrisk <- predictRisk(model, newdata = data_test, times = time_predict)
+#   
+#   data_segment_container[[i]] <- 
+#     predrisk_bin_segments(
+#       x = predrisk,
+#       event_time = data_test$futime,
+#       event_status = data_test$death,
+#       time_predict = time_predict,
+#       bin_length = 1/2,
+#       bin_count = 100,
+#       bin_yintercept = 0
+#     )
+#   
+#   calslope_hare <- calib_slope_hare(
+#     predicted_risk = predrisk,
+#     event_status = data_test$death,
+#     event_time = data_test$futime,
+#     time_predict = time_predict
+#   )
+#   
+#   # cal_test <- calib_test_gnd_auto(
+#   #   predicted_risk = predrisk,
+#   #   event_status = data_test$death,
+#   #   event_time = data_test$futime,
+#   #   time_predict = time_predict
+#   # )
+#   
+#   data_calslope_container[[i]] <- cbind(id = i, calslope_hare$data)
+#   
+#   
+# }
+# 
+# data_segment <- Reduce(rbind, data_segment_container)
+# 
+# data_calslope <- Reduce(rbind, data_calslope_container)
+# 
+# data_segment$event_status <- factor(
+#   x = data_segment$event_status,
+#   levels = c(1, 0),
+#   labels = c("Yes", "No")
+# )
+# 
+# ggplot(data_calslope) +
+#   aes(x = predicted, y = observed, group = id) +
+#   geom_line(col = 'grey', alpha = 2/3) +
+#   geom_smooth(col = 'blue', group = 1, method = 'lm') +
+#   geom_abline(col = 'black', linetype = 2, intercept = 0, slope = 1) +
+#   scale_x_continuous(limits = c(0, 1),
+#                      expand = c(0, 0),
+#                      breaks = seq(0, 1, by = 0.2),
+#                      labels = paste0(seq(0, 100, by = 20),"%")) +
+#   scale_y_continuous(limits = c(-0.1, 1),
+#                      breaks = seq(0, 1, by = 0.2),
+#                      labels = paste0(seq(0, 100, by = 20),"%")) +
+#   theme_bw() + 
+#   theme(legend.position = c(0.9, 0.4),
+#         legend.title.align = 0,
+#         panel.grid = element_blank()) +
+#   labs(color = 'Event status\nat t = 1,000') + 
+#   scale_color_manual(values = c('black', 'grey')) +
+#   geom_segment(data = data_segment, 
+#                inherit.aes = FALSE,
+#                size = 2,
+#                mapping = aes(x = x, 
+#                              y = y,
+#                              color = event_status,
+#                              xend = xend, 
+#                              yend = yend)) 
+
+```
+
+
+# References
+
+Austin PC, Harrell Jr FE, van Klaveren D. Graphical calibration curves and the integrated calibration index (ICI) for survival models. Statistics in Medicine. 2020 Sep 20;39(21):2714-42.

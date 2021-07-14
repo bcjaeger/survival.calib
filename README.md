@@ -19,11 +19,8 @@ help users apply these tests in a highly customized way (see
 ## Installation
 
 <!-- You can install the released version of survival.calib from [CRAN](https://CRAN.R-project.org) with: -->
-
 <!-- ``` r -->
-
 <!-- install.packages("survival.calib") -->
-
 <!-- ``` -->
 
 You can install `survival.calib` from GitHub with:
@@ -39,7 +36,6 @@ calibration of a proportional hazards model. First, we load packages and
 curate some data for modeling.
 
 ``` r
-
 library(survival.calib)
 library(survival)
 library(riskRegression)
@@ -64,10 +60,7 @@ Next, we
 2.  fit a model to the training set,
 3.  predict risk for mortality in a testing set.
 
-<!-- end list -->
-
 ``` r
-
 # step 1
 set.seed(730)
 train_index <- sample(x = nrow(model_data), size = 2000)
@@ -102,7 +95,6 @@ group each observation in the testing data belongs to. Creation of the
 e.g., `cut_percentiles` will create quantile groups for you.
 
 ``` r
-
 # Create risk groups:
 risk_groups <- cut_percentiles(risk_pred, g = 10)
 
@@ -146,22 +138,19 @@ gnd_result_manual
 
 Demler et al. show that the GND test has high variability if there are
 less than 5 events in any of the risk groups. When this occurs, the
-authors recommend lumping groups with \< 5 events into the nearest risk
-group. The `gnd_test_auto` automates this approach, allowing users to
-forego manual creation of risk groups. For example, below we apply
+authors recommend lumping groups with &lt; 5 events into the nearest
+risk group. The `gnd_test_auto` automates this approach, allowing users
+to forego manual creation of risk groups. For example, below we apply
 `gnd_test_auto` with `group_count_init = 45`, which initiates the
 following algorithm:
 
 1.  Create 45 groups based on quantiles of predicted risk.
 2.  Check the event counts in each group
-3.  If any groups have \< 5 events, collapse the group with fewest
+3.  If any groups have &lt; 5 events, collapse the group with fewest
     events into its neighbor, and repeat step 2
 4.  run `gnd_test_manual` with the (potentially modified) groups.
 
-<!-- end list -->
-
 ``` r
-
 gnd_result_auto <- 
  gnd_test_auto(predicted_risk = risk_pred,
                event_time = flchain$futime[-train_index],

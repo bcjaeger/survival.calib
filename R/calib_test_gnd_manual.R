@@ -14,11 +14,9 @@
 #' @param event_status (_numeric vector_) observed event status. The values
 #'   of this vector should be 0 (event censored) and 1 (event observed).
 #'
-#' @param event_time (_numeric vector_) observed event times'
+#' @param event_time (_numeric vector_) observed event times
 #'
-#' @param time_predict (_numeric value_) the time that risk predictions are
-#'   computed for. For example, to assess calibration of 10-year predicted
-#'   risk, set `time_predict = 10`.
+#' @param time_predict (_numeric value_) the time of risk prediction.
 #'
 #' @param group (_numeric vector_) risk group assignment. The GND chi-square
 #'   test statistic is based on the difference between predicted and observed
@@ -31,7 +29,7 @@
 #'   within a risk group that will not cause a hard stop (see details).
 #'
 #' @param verbose (_integer value_) If 0, no output will be printed.
-#'   If 1, details about events in each group will be printed.
+#'   If 1, some details will be printed. If 2, all details will be printed.
 #'
 #' @details
 #'
@@ -47,7 +45,7 @@
 #'   goodness‐of‐fit in the survival setting. *Statistics in medicine*, 34(10),
 #'   pp.1659-1680. DOI: 10.1002/sim.6428
 #'
-#' @return an object of class 'survival.calib_gnd_test'
+#' @return an object of class 'survival_calib_test'
 #'
 #' @export
 #'
@@ -68,43 +66,50 @@
 #'                          times = time_predict)
 #'
 #' #split into deciles
-#' risk_groups <- cut_percentiles(risk_pred, g = 10)
+#' risk_groups <- predrisk_grp_prcnt(risk_pred, g = 10)
 #'
-#' gnd_test_manual(predicted_risk = risk_pred,
+#' calib_test_gnd_manual(predicted_risk = risk_pred,
 #'                 event_time = flchain$futime[-train_index],
 #'                 event_status = flchain$death[-train_index],
 #'                 time_predict = time_predict,
 #'                 group = risk_groups,
 #'                 verbose = 0)
 
-gnd_test_manual = function(predicted_risk,
-                           event_status,
-                           event_time,
-                           time_predict,
-                           group,
-                           group_min_events_warn = 5,
-                           group_min_events_stop = 2,
-                           verbose = 0){
-
+calib_test_gnd_manual <- function(predicted_risk,
+                                  event_status,
+                                  event_time,
+                                  time_predict,
+                                  group,
+                                  group_min_events_warn = 5,
+                                  group_min_events_stop = 2,
+                                  verbose = 0,
+                                  id_value = NULL){
 
   check_call(
     match.call(),
     expected = list(
       'predicted_risk' = list(type = 'numeric', lwr = 0, upr = 1),
-      'event_status' = list(type = 'numeric', uni = c(0, 1)),
+      'event_status' = list(type = 'numeric', uni = c(0, 1), integer = TRUE),
       'event_time' = list(type = 'numeric', lwr = 0),
       'time_predict' = list(type = 'numeric', lwr = 0, length = 1),
       'group' = list(type = 'numeric', lwr = 0),
-      'group_min_events_warn' = list(type = 'numeric', length = 1, lwr = 5),
-      'group_min_events_stop' = list(type = 'numeric', length = 1, lwr = 2),
-      'verbose' = list(type = 'numeric', length = 1, lwr = 0)
+      'group_min_events_warn' = list(
+        type = 'numeric',
+        length = 1,
+        lwr = 5,
+        integer = TRUE
+      ),
+      'group_min_events_stop' = list(
+        type = 'numeric',
+        length = 1,
+        lwr = 2,
+        integer = TRUE
+      ),
+      'verbose' = list(type = 'numeric', length = 1, lwr = 0, integer = TRUE)
     )
   )
 
-
-
-
-  data_curtailed = data.frame(
+  data_curtailed <- data.frame(
     # predicted risk of event
     predicted_risk = predicted_risk,
     # observed event times, curtailed at time of censor
@@ -124,7 +129,7 @@ gnd_test_manual = function(predicted_risk,
   table_kapmeier <- t(
     vapply(
       X = split(data_curtailed, f = data_curtailed$group),
-      FUN = gnd_calib_worker,
+      FUN = gnd_test_worker,
       time_predict = time_predict,
       group_min_events_warn = group_min_events_warn,
       group_min_events_stop = group_min_events_stop,
@@ -151,7 +156,7 @@ gnd_test_manual = function(predicted_risk,
 
   table_hoslem <- with(
     data_curtailed,
-    data.frame(
+    tibble::tibble(
       group_label      = sort(unique(group)),
       group_n          = tapply(count,          group, sum),
       events_observed  = tapply(event_status,   group, sum),
@@ -194,22 +199,52 @@ gnd_test_manual = function(predicted_risk,
 
   gnd_df <- length(unique(data_curtailed$group)) - 1
 
-  gnd_test <- data.frame(
+  gnd_test <- tibble::tibble(
     GND_df = gnd_df,
     GND_chisq = sum(table_hoslem$GND_component),
     GND_pvalue = 1 - stats::pchisq(sum(table_hoslem$GND_component), gnd_df),
     row.names = NULL
   )
 
-  structure(
-    .Data = list(statistic = gnd_test,
-                 data = table_hoslem,
-                 warnings = msg_warn),
-    class = "survival.calib_gnd_test"
-  )
+  # if there is no id value, don't make it part of the output
+  if(is.null(id_value)){
+    return(
+      survival_calib_test_init(
+        time_predict = time_predict,
+        statistic = gnd_test,
+        data = table_hoslem,
+        warnings = msg_warn
+      )
+    )
+  }
 
+  # if there is an id value, make it the first column of the output
+
+  survival_calib_test_init(
+    time_predict = time_predict,
+    statistic = tibble::add_column(.data = gnd_test,
+                                   id = id_value,
+                                   .before = 1),
+    data = tibble::add_column(.data = table_hoslem,
+                              id = id_value,
+                              .before = 1),
+    warnings = msg_warn
+  )
 
 }
 
 
+survival_calib_test_init <- function(time_predict,
+                                     statistic,
+                                     data,
+                                     warnings){
 
+  structure(
+    .Data = list(time_predict = time_predict,
+                 statistic = statistic,
+                 data = data,
+                 warnings = warnings),
+    class = "survival_calib_test"
+  )
+
+}

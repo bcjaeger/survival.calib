@@ -101,7 +101,7 @@ risk_pred <- predictRisk(risk_mdl, newdata = flchain[-train_index, ],
 
 #split into deciles
 risk_groups <-
- apply(risk_pred, 2, cut_percentiles, g = 10)
+ apply(risk_pred, 2, predrisk_grp_prcnt, g = 10)
 
 #calculate the GND test
 
@@ -116,7 +116,7 @@ for(i in seq_along(risk_times)){
                              adm.cens = risk_times[i],
                              cens.t = 4000)
 
- bcj[[i]] <- gnd_test_manual(predicted_risk = risk_pred[, i],
+ bcj[[i]] <- calib_test_gnd_manual(predicted_risk = risk_pred[, i],
                              event_time = flchain$futime[-train_index],
                              event_status = flchain$death[-train_index],
                              group = risk_groups[, i],

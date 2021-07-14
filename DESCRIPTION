@@ -9,7 +9,7 @@ Authors@R:
              comment = c(ORCID = "0000-0003-3355-3210")),
       person(given = "Byron",
              family = "Jaeger",
-             role = c("cre"),
+             role = c("aut", "cre"),
              email = "bcjaeger@uab.edu",
              comment = c(ORCID = "0000-0001-7399-2299")))
 Description: There are multiple tests for mis-calibration in the setting of 
@@ -19,19 +19,26 @@ Description: There are multiple tests for mis-calibration in the setting of
  not require the assumption of proportional hazards. 
 References:
  Demler, O.V., Paynter, N.P. and Cook, N.R. (2015). <doi:10.1002/sim.6428>
+ Austin, P.C., Harrell Jr F.E., and van Klaveren D. (2020). <doi:10.1002/sim.8570>
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
+    data.table,
     glue,
+    polspline,
     survival,
     table.glue
 Suggests: 
+    ggplot2,
     covr,
     riskRegression,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 URL: https://bcjaeger.github.io/survival.calib, https://github.com/bcjaeger/survival.calib
 BugReports: https://github.com/bcjaeger/survival.calib/issues
+VignetteBuilder: knitr

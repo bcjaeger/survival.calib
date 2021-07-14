@@ -36,26 +36,26 @@ check_arg_uni <- function(arg_value, arg_name, expected_uni){
 
   uni <- unique(arg_value)
 
-  expected_in_uni <- all(expected_uni %in% uni)
+  # expected_in_uni <- all(expected_uni %in% uni)
   uni_in_expected <- all(uni %in% expected_uni)
 
   expected_values <- glue::glue_collapse(x = expected_uni,
                                          sep = ', ',
                                          last = ' and ')
 
-  if(!expected_in_uni){
-
-    missing_values <- glue::glue_collapse(x = setdiff(expected_uni, uni),
-                                          sep = ', ',
-                                          last = ' or ')
-
-    error_msg <-
-      glue::glue("{arg_name} should contain values of {expected_values}",
-                 "\nbut has no {missing_values} values")
-
-    stop(as.character(error_msg), call. = FALSE)
-
-  }
+  # if(!expected_in_uni){
+  #
+  #   missing_values <- glue::glue_collapse(x = setdiff(expected_uni, uni),
+  #                                         sep = ', ',
+  #                                         last = ' or ')
+  #
+  #   error_msg <-
+  #     glue::glue("{arg_name} should contain values of {expected_values}",
+  #                "\nbut has no {missing_values} values")
+  #
+  #   stop(as.character(error_msg), call. = FALSE)
+  #
+  # }
 
   if(!uni_in_expected){
 
@@ -110,8 +110,22 @@ check_arg_bounds <- function(arg_value, arg_name, bound_lwr, bound_upr){
 check_bound_lwr <- function(arg_value, arg_name, bound_lwr) {
 
   if(any(arg_value < bound_lwr)){
-    error_msg <- glue::glue("{arg_name} = {arg_value} should be >= {bound_lwr}")
+
+    if(length(arg_value) == 1){
+
+      error_msg <- glue::glue("{arg_name} = {arg_value} should be >= {bound_lwr}")
+
+    } else {
+
+      first_offense <- min(which(arg_value < bound_lwr))
+
+      error_msg <- glue::glue("{arg_name} should be >= {bound_lwr} but has",
+                              "\nat least one value that is < {bound_lwr}",
+                              " (see {arg_name}[{first_offense}])")
+    }
+
     stop(as.character(error_msg), call. = FALSE)
+
   }
 
 }
@@ -119,7 +133,20 @@ check_bound_lwr <- function(arg_value, arg_name, bound_lwr) {
 check_bound_upr <- function(arg_value, arg_name, bound_upr) {
 
   if(any(arg_value > bound_upr)){
-    error_msg <- glue::glue("{arg_name} = {arg_value} should be <= {bound_upr}")
+
+    if(length(arg_value) == 1){
+
+      error_msg <- glue::glue("{arg_name} = {arg_value} should be <= {bound_upr}")
+
+    } else {
+
+      first_offense <- min(which(arg_value > bound_upr))
+
+      error_msg <- glue::glue("{arg_name} should be <= {bound_upr} but has",
+                              "\nat least one value that is > {bound_upr}",
+                              " (see {arg_name}[{first_offense}])")
+    }
+
     stop(as.character(error_msg), call. = FALSE)
   }
 
@@ -183,6 +210,7 @@ check_call <- function(call, expected){
     if(is.null(arg_value)) return(invisible())
 
     expected_type <- expected[[arg_name]]$type
+    expected_integer <- expected[[arg_name]]$integer
     expected_length <- expected[[arg_name]]$length
     expected_uni <- expected[[arg_name]]$uni
     bound_lwr = expected[[arg_name]]$lwr
@@ -193,6 +221,10 @@ check_call <- function(call, expected){
       check_arg_type(arg_name = arg_name,
                      arg_value = arg_value,
                      expected_type = expected_type)
+
+    if(!is.null(expected_integer))
+      check_arg_is_integer(arg_name = arg_name,
+                           arg_value = arg_value)
 
     if(!is.null(expected_length))
       check_arg_length(arg_name = arg_name,
@@ -214,6 +246,31 @@ check_call <- function(call, expected){
       check_arg_is_valid(arg_name = arg_name,
                          arg_value = arg_value,
                          valid_options = expected_options)
+
+  }
+
+}
+
+check_arg_is_integer <- function(arg_name, arg_value){
+
+  is_integer <- all(as.integer(arg_value) == arg_value)
+
+  if(!is_integer){
+
+    if(length(arg_value) == 1){
+      error_msg <- glue::glue("{arg_name} should be an integer value",
+                              "\nbut instead has a value of {arg_value}")
+    } else {
+
+      first_offense <- min(which(as.integer(arg_value) != arg_value))
+
+      error_msg <- glue::glue("{arg_name} should contain only integer values",
+                              "\nbut has at least one double value",
+                              " (see {arg_name}[{first_offense}])")
+
+    }
+
+    stop(as.character(error_msg), call. = FALSE)
 
   }
 

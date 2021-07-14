@@ -1,7 +1,7 @@
 # printed output has not changed
 
     Code
-      gnd_test_auto(predicted_risk = risk_pred, event_time = flchain$futime[
+      calib_test_gnd_auto(predicted_risk = risk_pred, event_time = flchain$futime[
         -train_index], event_status = flchain$death[-train_index], time_predict = risk_times,
       group_count_init = 50, verbose = 0)
     Output
