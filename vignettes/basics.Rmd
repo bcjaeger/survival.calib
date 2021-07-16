@@ -89,10 +89,12 @@ time_predict <- 1000
 
 predrisk <- predictRisk(model, newdata = data_test, times = time_predict)
 
-cal <- calib_new(pred_risk = predrisk,
-                 pred_horizon = time_predict,
-                 event_status = data_test$death,
-                 event_time = data_test$futime)
+cal <- scalib_new(pred_risk = predrisk,
+                  pred_horizon = time_predict,
+                  event_status = data_test$death,
+                  event_time = data_test$futime)
+
+scalib_test_gnd(cal)
 
 
 ```

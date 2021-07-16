@@ -1,7 +1,10 @@
 
-
-library(riskRegression)
-library(survival)
+suppressPackageStartupMessages(
+ expr = {
+  library(survival)
+  library(riskRegression)
+ }
+)
 
 # Original GND functions: ----
 kmdec_orig = function(dec.num, dec.name, datain, adm.cens) {
@@ -86,17 +89,38 @@ GND.calib_orig = function(pred, tvar, out, cens.t, groups, adm.cens) {
 }#GND.calib
 
 
+
 # Set up for tests ----
 
-train_index <- 1:2500
+# drop rows with missing values for simplicity
+data_init <- na.omit(flchain)
 
-risk_mdl <- coxph(data = flchain[train_index, ],
-                  x = TRUE,
-                  formula = Surv(futime, death)~age+sex+flc.grp+lambda)
+data_init$chapter <- NULL
 
-risk_times <- c(1500, 2500, 4000)
+n_obs_total <- nrow(data_init)
+n_obs_train <- round(n_obs_total * 2/3)
 
-risk_pred <- predictRisk(risk_mdl, newdata = flchain[-train_index, ],
+set.seed(32987)
+
+train_index <- sample(n_obs_total, size = n_obs_train)
+
+data_train <- data_init[train_index, ]
+data_test <- data_init[-train_index, ]
+
+model_1 <- coxph(Surv(futime, death) ~ .,
+                 data = data_train,
+                 x = TRUE)
+
+model_2 <- update(model_1, . ~ . - flc.grp)
+
+model_3 <- update(model_2, . ~ . -mgus)
+
+pred_horizon = 1000
+
+risk_times <- c(1500, 2500, 3000)
+
+risk_pred <- predictRisk(model_1,
+                         newdata = data_test,
                          times = risk_times)
 
 #split into deciles
@@ -109,37 +133,88 @@ orig <- bcj <- list()
 
 for(i in seq_along(risk_times)){
 
-  orig[[i]] <- GND.calib_orig(pred = risk_pred[, i],
-                              tvar = flchain$futime[-train_index],
-                              out = flchain$death[-train_index],
-                              groups = risk_groups[, i],
-                              adm.cens = risk_times[i],
-                              cens.t = 4000)
+ orig[[i]] <- GND.calib_orig(pred = risk_pred[, i],
+                             tvar = data_test$futime,
+                             out = data_test$death,
+                             groups = risk_groups[, i],
+                             adm.cens = risk_times[i],
+                             cens.t = 4000)
 
-  .scalib <- scalib_initiate(pred_risk = risk_pred[, i],
-                             pred_horizon = risk_times[i],
-                             event_status = flchain$death[-train_index],
-                             event_time = flchain$futime[-train_index])
+ .scalib <- scalib_initiate(pred_risk = risk_pred[, i],
+                            pred_horizon = risk_times[i],
+                            event_status = data_test$death,
+                            event_time = data_test$futime)
 
-  .scalib$data_inputs$group <- risk_groups[, i]
+ .scalib$data_inputs$group <- risk_groups[, i]
 
-  bcj[[i]] <- scalib_test_gnd_manual(
-    .scalib,
-    pred_risk_col = 'pred_risk',
-    verbose = 0
-  )
+ bcj[[i]] <- scalib_test_gnd_manual(
+  .scalib,
+  pred_risk_col = 'pred_risk',
+  verbose = 0
+ )
 
 }
+
+add_risk_grp <- function(x, r){
+ x$data_inputs$group <- r
+ x
+}
+
+.s <- scalib_initiate(pred_risk = risk_pred[, i],
+                pred_horizon = risk_times[i],
+                event_status = data_test$death,
+                event_time = data_test$futime) |>
+ add_risk_grp(r = risk_groups[, i])
+
+microbenchmark::microbenchmark(
+ GND.calib_orig(pred = risk_pred[, i],
+                        tvar = data_test$futime,
+                        out = data_test$death,
+                        groups = risk_groups[, i],
+                        adm.cens = risk_times[i],
+                        cens.t = 4000),
+   scalib_test_gnd_manual(
+    .s,
+    pred_risk_col = 'pred_risk',
+    verbose = 0
+   )
+)
 
 # Tests ----
 
 test_that(
-  "BCJ code matches original",
-  code = {
-    for(i in seq_along(risk_times)){
-      expect_equal(as.numeric(bcj[[i]]$GND_chisq),
-                   as.numeric(orig[[i]]['chi2gw']),
-                   ignore_attr = TRUE)
+ "BCJ code matches original",
+ code = {
+  for(i in seq_along(risk_times)){
+   expect_equal(as.numeric(bcj[[i]]$GND_chisq),
+                as.numeric(orig[[i]]['chi2gw']),
+                ignore_attr = TRUE)
+   expect_equal(as.numeric(bcj[[i]]$GND_pvalue),
+                as.numeric(orig[[i]]['pvalgw']),
+                ignore_attr = TRUE)
   }
  }
 )
+
+
+preds <- lapply(
+ X = list(model_1,
+          model_2,
+          model_3),
+ FUN = predictRisk,
+ newdata = data_test,
+ times = pred_horizon
+)
+
+.scalib <- scalib_initiate(
+ pred_risk = preds,
+ pred_horizon = pred_horizon,
+ event_status = data_test$death,
+ event_time = data_test$futime
+) %>%
+ scalib_test_gnd()
+
+
+
+
+

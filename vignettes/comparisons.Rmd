@@ -56,7 +56,7 @@ We'll also use a simple split of the data for training and testing.
 n_obs_total <- nrow(data_init)
 n_obs_train <- round(n_obs_total * 2/3)
 
-set.seed(32987)
+set.seed(329)
 train_index <- sample(n_obs_total, size = n_obs_train)
 
 data_train <- data_init[train_index, ]
@@ -85,32 +85,19 @@ model_1 <- coxph(Surv(futime, death) ~ age + sex,
 model_2 <- update(model_1, . ~ . + lambda + kappa + creatinine)
 
 # compute predicted risk at 3000 days post baseline
-time_predict <- 3000
+time_predict <- 1000
 
 predrisk_1 = predictRisk(model_1, newdata = data_test, times = time_predict)
 predrisk_2 = predictRisk(model_2, newdata = data_test, times = time_predict)
 
-calslope_1 <- calib_slope_hare(predrisk_1, 
-                               event_time = data_test$futime,
-                               event_status = data_test$death,
-                               time_predict = time_predict)
+scal <- scalib_initiate(pred_risk = list(predrisk_1, 
+                                         predrisk_2, 
+                                         predrisk_2),
+                        pred_horizon = time_predict,
+                        event_status = data_test$death,
+                        event_time = data_test$futime)
 
-calslope_2 <- calib_slope_hare(predrisk_2, 
-                               event_time = data_test$futime,
-                               event_status = data_test$death,
-                               time_predict = time_predict)
-
-calslope <- calib_slope_hare(list(predrisk_1, predrisk_2), 
-                             event_time = data_test$futime,
-                             event_status = data_test$death,
-                             time_predict = time_predict)
-
-caltest <- calib_test_gnd(list(predrisk_1, 
-                               predrisk_2, 
-                               predrisk_2), 
-                          event_time = data_test$futime,
-                          event_status = data_test$death,
-                          time_predict = time_predict)
+caltest <- scalib_test_gnd(scal, verbose = 1)
 
 
 ```
