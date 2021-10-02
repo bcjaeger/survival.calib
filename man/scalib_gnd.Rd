@@ -138,12 +138,12 @@ risk_mdl <- coxph(data = flchain[train_index, ],
                   formula = Surv(futime, death)~age+sex+flc.grp+lambda)
 
 # set time of prediction
-time_predict <- 4000
+pred_horizon <- 4000
 
 # predict risk in the testing data
-risk_pred <- predictRisk(risk_mdl,
+pred_risk <- predictRisk(risk_mdl,
                          newdata = flchain[-train_index, ],
-                         times = time_predict)
+                         times = pred_horizon)
 
 # create a scalib object
 
@@ -159,10 +159,10 @@ risk_pred <- predictRisk(risk_mdl,
 #  this example just shows the mechanics of the automatic group reduction.
 #  The recommended values are the default values.)
 
-scalib_gnd(predicted_risk = risk_pred,
+scalib_gnd(predicted_risk = pred_risk,
               event_time = flchain$futime[-train_index],
               event_status = flchain$death[-train_index],
-              time_predict = time_predict,
+              pred_horizon = pred_horizon,
               group_min_events_warn = 40,
               group_count_init = 10,
               group_count_min = 5,
