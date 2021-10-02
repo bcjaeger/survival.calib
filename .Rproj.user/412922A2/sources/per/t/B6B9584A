@@ -1,0 +1,26 @@
+{
+    "id": "B6B9584A",
+    "path": "D:/survival.calib/R/predrisk_grp_prcnt.R",
+    "project_path": "R/predrisk_grp_prcnt.R",
+    "type": "r_source",
+    "hash": "2452170038",
+    "contents": "",
+    "dirty": false,
+    "created": 1628103904836.0,
+    "source_on_save": false,
+    "relative_order": 10,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "151,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1628103922,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1628103922772,
+    "read_only": false,
+    "read_only_alternatives": []
+}

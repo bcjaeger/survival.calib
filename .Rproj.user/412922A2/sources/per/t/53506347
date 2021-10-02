@@ -1,0 +1,26 @@
+{
+    "id": "53506347",
+    "path": "D:/survival.calib/R/scalib_gnd.R",
+    "project_path": "R/scalib_gnd.R",
+    "type": "r_source",
+    "hash": "1411935556",
+    "contents": "",
+    "dirty": false,
+    "created": 1627074217237.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "101,33",
+        "scrollLine": "0"
+    },
+    "folds": "129|36|350|0|\n",
+    "lastKnownWriteTime": 1628258751,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1628258751306,
+    "read_only": false,
+    "read_only_alternatives": []
+}

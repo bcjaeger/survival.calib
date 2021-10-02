@@ -1,0 +1,18 @@
+{
+    "dialog-state": {
+        "query": "melt",
+        "path": "",
+        "regex": false,
+        "caseSensitive": false,
+        "wholeWord": false,
+        "filePatterns": [
+            "*.r",
+            "*.R"
+        ],
+        "excludeFilePatterns": [],
+        "resultsCount": 3,
+        "errorCount": 0,
+        "replaceErrors": "",
+        "projectRelative": true
+    }
+}

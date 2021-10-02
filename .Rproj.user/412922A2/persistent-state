@@ -1,0 +1,8 @@
+build-last-errors="[]"
+build-last-errors-base-dir=""
+build-last-outputs="[{\"type\":0,\"output\":\"==> devtools::document(roclets = c('rd', 'collate', 'namespace'))\\n\\n\"},{\"type\":2,\"output\":\"i Updating survival.calib documentation\\r\\n\"},{\"type\":2,\"output\":\"i Loading survival.calib\\r\\n\"},{\"type\":2,\"output\":\"Warning: [C:\\\\Users\\\\bcjaeger\\\\Desktop\\\\survival.calib\\\\R\\\\as.data.table.R:17] @examples requires a value\\r\\n\"},{\"type\":2,\"output\":\"Warning: [C:\\\\Users\\\\bcjaeger\\\\Desktop\\\\survival.calib\\\\R\\\\scalib.R:18] @examples requires a value\\r\\n\"},{\"type\":1,\"output\":\"Writing NAMESPACE\\r\\n\"},{\"type\":1,\"output\":\"Writing scalib_gnd.Rd\\r\\n\"},{\"type\":1,\"output\":\"Writing NAMESPACE\\r\\n\"},{\"type\":1,\"output\":\"Documentation completed\\n\"}]"
+compile_pdf_state="{\"tab_visible\":false,\"running\":false,\"target_file\":\"\",\"output\":\"\",\"errors\":[]}"
+files.monitored-path=""
+find-in-files-state="{\"handle\":\"\",\"input\":\"\",\"path\":\"\",\"regex\":false,\"ignoreCase\":false,\"results\":{\"file\":[],\"line\":[],\"lineValue\":[],\"matchOn\":[],\"matchOff\":[],\"replaceMatchOn\":[],\"replaceMatchOff\":[]},\"running\":false,\"replace\":false,\"preview\":false,\"gitFlag\":false,\"replacePattern\":\"\"}"
+imageDirtyState="1"
+saveActionState="0"
