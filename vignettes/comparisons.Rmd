@@ -14,13 +14,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(survival.calib)
-```
-
-# Overview
-
-
 
 ```{r setup, message=FALSE}
 
@@ -33,6 +26,8 @@ library(ggplot2)
 knitr::opts_chunk$set(fig.width=7, fig.height=5)
 
 ```
+
+# Overview
 
 ## Data
 
@@ -84,20 +79,19 @@ model_1 <- coxph(Surv(futime, death) ~ age + sex,
 
 model_2 <- update(model_1, . ~ . + lambda + kappa + creatinine)
 
-# compute predicted risk at 3000 days post baseline
-time_predict <- 1000
+# compute predicted risk at 2000 days post baseline
+time_predict <- c(2000)
 
 predrisk_1 = predictRisk(model_1, newdata = data_test, times = time_predict)
 predrisk_2 = predictRisk(model_2, newdata = data_test, times = time_predict)
 
-scal <- scalib_initiate(pred_risk = list(predrisk_1, 
-                                         predrisk_2, 
-                                         predrisk_2),
-                        pred_horizon = time_predict,
-                        event_status = data_test$death,
-                        event_time = data_test$futime)
-
-caltest <- scalib_test_gnd(scal, verbose = 1)
+scal_2000 <- scalib(pred_risk = list(predrisk_1[,1], 
+                                     predrisk_2[,1]),
+                    pred_horizon = time_predict,
+                    event_status = data_test$death,
+                    event_time = data_test$futime) %>% 
+  scalib_gnd() %>% 
+  scalib_hare()
 
 
 ```
@@ -106,11 +100,13 @@ Now let's combine the data and create a graph showing both curves.
 
 ```{r}
 
-data_calslope <- bind_rows(`Model 1` = calslope_hare_1$data,
-                           `Model 2` = calslope_hare_2$data,
+data_calslope <- bind_rows(scal_2000$data_outputs$hare_data_plot,
                            .id = 'model')
 
 fig_cal_slopes <- ggplot(data_calslope) + 
+  scale_y_continuous(limits = c(-0.2, 1.2), 
+                     breaks = seq(0, 1, by = 0.2),
+                     labels = paste0(seq(0, 100, by = 20),"%")) +
   aes(x = predicted, y = observed, color = model) +
   geom_line() + 
   geom_abline(col = 'grey', linetype = 2, intercept = 0, slope = 1) + 
@@ -118,9 +114,6 @@ fig_cal_slopes <- ggplot(data_calslope) +
                      expand = c(0,0),
                      breaks = seq(0, 1, by = 0.2),
                      labels = paste0(seq(0, 100, by = 20),"%")) + 
-  scale_y_continuous(limits = c(0, 1), 
-                     breaks = seq(0, 1, by = 0.2),
-                     labels = paste0(seq(0, 100, by = 20),"%")) +
   theme_bw() + 
   theme(panel.grid = element_blank())
 
@@ -135,20 +128,16 @@ It's standard practice to show the distribution of predicted risk underneath the
 segment_1 <- predrisk_bin_segments(x = predrisk_1, 
                                    event_status = data_test$status,
                                    event_time = data_test$time,
-                                   time_predict = time_predict,
                                    bin_yintercept = -0.05,
                                    bin_length = 1/2)
 
 segment_2 <- predrisk_bin_segments(x = predrisk_2, 
                                    event_status = data_test$status,
                                    event_time = data_test$time,
-                                   time_predict = time_predict,
                                    bin_yintercept = -0.15,
                                    bin_length = 1/2)
 
-data_segment <- bind_rows(`Model 1` = segment_1,
-                          `Model 2` = segment_2,
-                          .id = 'model')
+data_segment <- bind_rows(segment_1, segment_2,.id = 'model')
 
 ```
 
@@ -157,10 +146,6 @@ data_segment <- bind_rows(`Model 1` = segment_1,
 
 
 fig_cal_slopes + 
-  scale_y_continuous(limits = c(-0.2, 1), 
-                     breaks = seq(0, 1, by = 0.2),
-                     labels = paste0(seq(0, 100, by = 20),"%")) +
-  theme(legend.position = c(0.9, 0.33)) +
   geom_hline(yintercept = -0.05, linetype = 2, color = 'grey') +
   geom_hline(yintercept = -0.15, linetype = 2, color = 'grey') +
   geom_segment(data = data_segment, 

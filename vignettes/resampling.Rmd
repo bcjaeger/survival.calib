@@ -1,0 +1,158 @@
+---
+title: "Resampling with scalib objects"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Resampling with scalib objects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+
+library(survival.calib)
+library(survival)
+library(riskRegression)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(data.table)
+
+theme_set(theme_bw() + theme(panel.grid = element_blank()))
+
+knitr::opts_chunk$set(fig.width=7, fig.height=5)
+
+```
+
+## Data
+
+For this example, we'll use a standard dataset, `survival::flchain`, with some  modifications:
+
+1. we omit cases with missing values
+    ```{r}
+    # drop rows with missing values for simplicity
+    data_init <- na.omit(flchain)
+    ```
+
+1. we remove the `chapter` variable. 
+
+    ```{r}
+    # sometimes chapter makes split-sample tests tricky
+    data_init$chapter <- NULL
+    ```
+Leaving us with a pretty clean initial data set
+
+```{r}
+head(data_init)
+```
+
+## Repeated split sample tests
+
+```{r}
+
+set.seed(7302016)
+
+mccv_count <- 10
+
+results <- vector(mode = 'list', length = mccv_count)
+
+n_obs_total <- nrow(data_init)
+n_obs_train <- round(n_obs_total * 1/2)
+pred_horizon <- 1500
+
+for(i in seq(mccv_count)){
+
+  train_index <- sample(n_obs_total, size = n_obs_train)
+  data_train <- data_init[train_index, ]
+  data_test <- data_init[-train_index, ]
+
+  model <- coxph(Surv(futime, death) ~ age + sex + sample.yr + flc.grp,
+               data = data_train,
+               x = TRUE)
+
+  predrisk <- predictRisk(model, newdata = data_test, times = pred_horizon)
+
+  results[[i]] <- predrisk %>% 
+  scalib(pred_horizon = pred_horizon,
+         event_status = data_test$death,
+         event_time = data_test$futime) %>% 
+  scalib_hare() %>% 
+  scalib_gnd() %>% 
+  as.data.table()
+
+}
+
+results <- rbindlist(results, idcol = '._iter_.')
+
+results
+
+```
+
+## Extracting outputs
+
+```{r}
+
+data_outputs <- results  %>% 
+  select(._iter_., ._id_., outputs) %>% 
+  unnest(outputs)
+
+```
+
+## Pooling Chi-square statistics for miscalibration
+
+Don't do this! The assumption of pooled chi-square tests is that the chi-square statistics are independent, but these chi-square statistics are correlated. 
+
+## Visualizing results across all resamples
+
+```{r}
+
+data_segment <- results %>% 
+  select(._id_., inputs) %>% 
+  unnest(inputs) %>% 
+  pull(pred_risk) %>% 
+  predrisk_bin_segments(bin_count = 75,
+                        bin_length = 2)
+
+
+data_calslope <- data_outputs %>% 
+  select(._iter_., ._id_., hare_data_plot) %>% 
+  unnest(hare_data_plot)
+
+
+ggplot(data_calslope) +
+  aes(x = predicted, y = observed, group = ._iter_.) +
+  geom_line(col = 'grey', alpha = 2/3) +
+  geom_smooth(col = 'blue', 
+              group = 1, 
+              method = 'gam',
+              formula = y ~ s(x, bs = "cs")) +
+  geom_abline(col = 'black', linetype = 2, intercept = 0, slope = 1) +
+  scale_x_continuous(limits = c(0, 1),
+                     expand = c(0, 0),
+                     breaks = seq(0, 1, by = 0.2),
+                     labels = paste0(seq(0, 100, by = 20),"%")) +
+  scale_y_continuous(limits = c(0, 1),
+                     breaks = seq(0, 1, by = 0.2),
+                     labels = paste0(seq(0, 100, by = 20),"%")) +
+  labs(color = 'Event status\nat t = 1,000') +
+  geom_segment(data = data_segment,
+               inherit.aes = FALSE,
+               size = 2,
+               color = 'grey',
+               mapping = aes(x = x,
+                             y = y,
+                             xend = xend,
+                             yend = yend))
+
+```
+
+
+
+
+

@@ -42,7 +42,15 @@ predict.grid.cox.cll <- log(-log(1-predict.grid.cox))
 predict.calibrate.cox <- phare(times,predict.grid.cox.cll,calibrate.cox)
 
 
-hare <- calib_slope_hare(
+test_that()
+
+.scalib <-
+        scalib(pred_risk = predict.cox,
+               pred_horizon = times,
+               event_status = effect2.df$death,
+               event_time = effect2.df$futime)
+
+hare <- scalib_hare(
         predicted_risk = predict.cox,
         event_status = effect2.df$death,
         event_time = effect2.df$futime,

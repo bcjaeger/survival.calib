@@ -28,8 +28,7 @@ model_3 <- update(model_2, . ~ . -mgus)
 
 pred_horizon = 1000
 
-
-preds <- lapply(
+preds_unnamed <- lapply(
  X = list(model_1,
           model_2,
           model_3),
@@ -38,22 +37,38 @@ preds <- lapply(
  times = pred_horizon
 )
 
-x_list <- scalib_initiate(
- pred_risk = preds,
+preds_named <- lapply(
+  X = list(a = model_1,
+           b = model_2,
+           c = model_3),
+  FUN = predictRisk,
+  newdata = data_test,
+  times = pred_horizon
+)
+
+x_list_unnamed <- scalib(
+ pred_risk = preds_unnamed,
  pred_horizon = pred_horizon,
  event_status = data_test$death,
  event_time = data_test$futime
 )
 
+x_list_named <- scalib(
+  pred_risk = preds_named,
+  pred_horizon = pred_horizon,
+  event_status = data_test$death,
+  event_time = data_test$futime
+)
+
 
 # preds is a data frame
 preds_df <- data.frame(
- model_1 = as.numeric(preds[[1]]),
- model_2 = as.numeric(preds[[2]]),
- model_3 = as.numeric(preds[[3]])
+ model_1 = as.numeric(preds_unnamed[[1]]),
+ model_2 = as.numeric(preds_unnamed[[2]]),
+ model_3 = as.numeric(preds_unnamed[[3]])
 )
 
-x_df <- scalib_initiate(
+x_df <- scalib(
  pred_risk = preds_df,
  pred_horizon = pred_horizon,
  event_status = data_test$death,
@@ -66,13 +81,20 @@ test_that(
  desc = 'scalib_new constructs as expected',
  code = {
 
-  expect_equal(x_list$data_inputs[[3]], as.numeric(preds[[1]]))
-  expect_equal(x_list$data_inputs[[4]], as.numeric(preds[[2]]))
-  expect_equal(x_list$data_inputs[[5]], as.numeric(preds[[3]]))
+  expect_equal(x_list_named$data_inputs$a, as.numeric(preds_named$a))
+  expect_equal(x_list_named$data_inputs$b, as.numeric(preds_named$b))
+  expect_equal(x_list_named$data_inputs$c, as.numeric(preds_named$c))
 
-  expect_equal(x_df$data_inputs[[3]], as.numeric(preds[[1]]))
-  expect_equal(x_df$data_inputs[[4]], as.numeric(preds[[2]]))
-  expect_equal(x_df$data_inputs[[5]], as.numeric(preds[[3]]))
+  expect_equal(x_list_unnamed$data_inputs$pred_risk_1,
+               as.numeric(preds_unnamed[[1]]))
+  expect_equal(x_list_unnamed$data_inputs$pred_risk_2,
+               as.numeric(preds_unnamed[[2]]))
+  expect_equal(x_list_unnamed$data_inputs$pred_risk_3,
+               as.numeric(preds_unnamed[[3]]))
+
+  expect_equal(x_df$data_inputs$model_1, as.numeric(preds_df$model_1))
+  expect_equal(x_df$data_inputs$model_2, as.numeric(preds_df$model_2))
+  expect_equal(x_df$data_inputs$model_3, as.numeric(preds_df$model_3))
 
  }
 )

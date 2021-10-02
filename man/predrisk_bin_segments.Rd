@@ -6,30 +6,22 @@
 \usage{
 predrisk_bin_segments(
   x,
-  event_status,
-  event_time,
-  time_predict,
-  x_min = 0,
-  x_max = 1,
+  event_time = NULL,
+  event_status = NULL,
+  pred_horizon = NULL,
+  by_event = FALSE,
   bin_count = 100,
   bin_yintercept = 0,
   bin_length = 1
 )
 }
 \arguments{
-\item{x}{(\emph{numeric vector}) a numeric vector which will be converted to
-a vector of integers by cutting.}
+\item{event_time}{(\emph{numeric vector}) observed event times}
 
 \item{event_status}{(\emph{numeric vector}) observed event status. The values
 of this vector should be 0 (event censored) and 1 (event observed).}
 
-\item{event_time}{(\emph{numeric vector}) observed event times}
-
-\item{time_predict}{(\emph{numeric value}) the time of risk prediction.}
-
-\item{x_min}{(\emph{numeric value}) minimum value of x-axis on downstream plots.}
-
-\item{x_max}{(\emph{numeric value}) maximum value of x-axis on downstream plots.}
+\item{pred_horizon}{(\emph{numeric value}) the time of risk prediction.}
 
 \item{bin_count}{(\emph{integer value}) total count of bins for downstream plots}
 
@@ -40,14 +32,12 @@ bins should originate from on downstream plots.}
 plots.}
 }
 \value{
-\code{data.frame} object with values that can be plugged into
+a \code{data.frame} object with values that can be plugged into
 standard plotting tools, e.g., \code{ggplot2::ggplot()} (see examples).
 }
 \description{
 Bin predicted risk for plotting
 }
 \examples{
-
-
 
 }

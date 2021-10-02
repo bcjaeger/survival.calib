@@ -1,8 +1,8 @@
 
 
-lump_group <- function(group, events, min_size = 5){
+lump_group <- function(group, variable, events, min_size = 5){
 
- index_lowest_count <- which.min(events$Freq)
+ index_lowest_count <- which.min(events$N)
 
  index_new_group <-
   if(index_lowest_count == 1){
@@ -22,7 +22,7 @@ lump_group <- function(group, events, min_size = 5){
 find_new_group_index <- function(events, index_lowest_count){
 
  use_plus_1 <-
-  events$Freq[index_lowest_count + 1] < events$Freq[index_lowest_count - 1]
+  events$N[index_lowest_count + 1] < events$N[index_lowest_count - 1]
 
  if(use_plus_1){
   index_lowest_count + 1

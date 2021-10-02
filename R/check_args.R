@@ -2,6 +2,24 @@
 
 
 
+paste_collapse <- function(x, sep=', ', last = ' or '){
+
+  if(length(x) == 1) return(paste(x))
+
+  x_last <- x[length(x)]
+  paste(paste(x[-length(x)], collapse = sep), x_last, sep = last)
+
+}
+
+check_scalib <- function(x, pattern, msg){
+
+  if(is_empty(x$data_outputs)) return(invisible())
+
+  if(any(grepl(pattern = pattern, x = names(x$data_outputs))))
+    stop(msg, call. = FALSE)
+
+}
+
 check_arg_type <- function(arg_value, arg_name, expected_type){
 
   if('numeric' %in% expected_type)
@@ -17,14 +35,15 @@ check_arg_type <- function(arg_value, arg_name, expected_type){
 
   if (!type_match) {
 
-    expected_types <- glue::glue_collapse(x = expected_type,
-                                          sep = ', ',
-                                          last = ' or ')
+    expected_types <- paste_collapse(x = expected_type,
+                                     sep = ', ',
+                                     last = ' or ')
 
-    error_msg <- glue::glue("{arg_name} should have type <{expected_types}>",
-                            "\nbut instead has type <{arg_type}>")
+    error_msg <-
+      paste0(arg_name, " should have type <", expected_types, ">",
+             "\nbut instead has type <", arg_type, ">")
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
 
   }
 
@@ -39,40 +58,24 @@ check_arg_uni <- function(arg_value, arg_name, expected_uni){
   # expected_in_uni <- all(expected_uni %in% uni)
   uni_in_expected <- all(uni %in% expected_uni)
 
-  expected_values <- glue::glue_collapse(x = expected_uni,
-                                         sep = ', ',
-                                         last = ' and ')
-
-  # if(!expected_in_uni){
-  #
-  #   missing_values <- glue::glue_collapse(x = setdiff(expected_uni, uni),
-  #                                         sep = ', ',
-  #                                         last = ' or ')
-  #
-  #   error_msg <-
-  #     glue::glue("{arg_name} should contain values of {expected_values}",
-  #                "\nbut has no {missing_values} values")
-  #
-  #   stop(as.character(error_msg), call. = FALSE)
-  #
-  # }
+  expected_values <- paste_collapse(x = expected_uni,
+                                    sep = ', ',
+                                    last = ' and ')
 
   if(!uni_in_expected){
 
-    invalid_values <- glue::glue_collapse(x = setdiff(uni, expected_uni),
-                                          sep = ', ',
-                                          last = ' and ')
+    invalid_values <- paste_collapse(x = setdiff(uni, expected_uni),
+                                     sep = ', ',
+                                     last = ' and ')
 
     error_msg <-
-      glue::glue("{arg_name} should contain values of {expected_values}",
-                 "\nbut has values of {invalid_values}")
+      paste0(arg_name, "should contain values of ", expected_values,
+                 "\nbut has values of ", invalid_values)
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
 
 
   }
-
-  invisible()
 
 }
 
@@ -86,14 +89,15 @@ check_arg_length <- function(arg_value, arg_name, expected_length){
 
   if (!length_match) {
 
-    expected_lengths <- glue::glue_collapse(x = expected_length,
-                                            sep = ', ',
-                                            last = ' or ')
+    expected_lengths <- paste_collapse(x = expected_length,
+                                       sep = ', ',
+                                       last = ' or ')
 
-    error_msg <- glue::glue("{arg_name} should have length <{expected_lengths}>",
-                            "\nbut instead has length <{arg_length}>")
+    error_msg <-
+      paste0(arg_name, " should have length <", expected_lengths, ">",
+             "\nbut instead has length <", arg_length, ">")
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
 
   }
 
@@ -113,18 +117,19 @@ check_bound_lwr <- function(arg_value, arg_name, bound_lwr) {
 
     if(length(arg_value) == 1){
 
-      error_msg <- glue::glue("{arg_name} = {arg_value} should be >= {bound_lwr}")
+      error_msg <-
+        paste0(arg_name, " = ", arg_value, "should be >= ", bound_lwr)
 
     } else {
 
       first_offense <- min(which(arg_value < bound_lwr))
 
-      error_msg <- glue::glue("{arg_name} should be >= {bound_lwr} but has",
-                              "\nat least one value that is < {bound_lwr}",
-                              " (see {arg_name}[{first_offense}])")
+      error_msg <- paste0(arg_name, " should be >= ", bound_lwr, " but has",
+                          "\nat least one value that is < ", bound_lwr,
+                          " (see ", arg_name, "[", first_offense, "])")
     }
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
 
   }
 
@@ -136,18 +141,19 @@ check_bound_upr <- function(arg_value, arg_name, bound_upr) {
 
     if(length(arg_value) == 1){
 
-      error_msg <- glue::glue("{arg_name} = {arg_value} should be <= {bound_upr}")
+      error_msg <-
+        paste0(arg_name, " = ", arg_value, " should be <= ", bound_upr)
 
     } else {
 
       first_offense <- min(which(arg_value > bound_upr))
 
-      error_msg <- glue::glue("{arg_name} should be <= {bound_upr} but has",
-                              "\nat least one value that is > {bound_upr}",
-                              " (see {arg_name}[{first_offense}])")
+      error_msg <- paste0(arg_name, " should be <= ", bound_upr, " but has",
+                              "\nat least one value that is > ", bound_upr,
+                              " (see ", arg_name, "[", first_offense, "])")
     }
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
   }
 
 }
@@ -158,20 +164,20 @@ check_arg_is_valid <- function(arg_value, arg_name, valid_options) {
 
   if (!valid_arg) {
 
-    expected_values <- glue::glue_collapse(x = valid_options,
-                                          sep = ', ',
-                                          last = ' or ')
+    expected_values <- paste_collapse(x = valid_options,
+                                      sep = ', ',
+                                      last = ' or ')
 
-    arg_values <- glue::glue_collapse(x = arg_value,
-                                     sep = ', ',
-                                     last = ' or ')
+    arg_values <- paste_collapse(x = arg_value,
+                                 sep = ', ',
+                                 last = ' or ')
 
-    error_msg <- glue::glue(
-      "{arg_name} should be <{expected_values}>",
-      "\nbut is instead <{arg_values}>"
+    error_msg <- paste0(
+      arg_name, " should be <", expected_values, ">",
+      "\nbut is instead <", arg_values, ">"
     )
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
 
   }
 
@@ -216,6 +222,7 @@ check_call <- function(call, expected){
     bound_lwr = expected[[arg_name]]$lwr
     bound_upr = expected[[arg_name]]$upr
     expected_options = expected[[arg_name]]$options
+    expected_class = expected[[arg_name]]$class
 
     if(!is.null(expected_type))
       check_arg_type(arg_name = arg_name,
@@ -247,6 +254,11 @@ check_call <- function(call, expected){
                          arg_value = arg_value,
                          valid_options = expected_options)
 
+    if(!is.null(expected_class))
+      check_arg_is(arg_name = arg_name,
+                   arg_value = arg_value,
+                   expected_class = expected_class)
+
   }
 
 }
@@ -258,45 +270,45 @@ check_arg_is_integer <- function(arg_name, arg_value){
   if(!is_integer){
 
     if(length(arg_value) == 1){
-      error_msg <- glue::glue("{arg_name} should be an integer value",
-                              "\nbut instead has a value of {arg_value}")
+      error_msg <- paste0(arg_name, " should be an integer value",
+                          "\nbut instead has a value of ", arg_value)
     } else {
 
       first_offense <- min(which(as.integer(arg_value) != arg_value))
 
-      error_msg <- glue::glue("{arg_name} should contain only integer values",
-                              "\nbut has at least one double value",
-                              " (see {arg_name}[{first_offense}])")
+      error_msg <- paste0(arg_name, " should contain only integer values",
+                          "\nbut has at least one double value",
+                          " (see ", arg_name, "[", first_offense, "])")
 
     }
 
-    stop(as.character(error_msg), call. = FALSE)
+    stop(error_msg, call. = FALSE)
 
   }
 
 }
 
-# check_arg_is <- function(arg_value, arg_name, expected_class){
-#
-#   arg_is <- inherits(arg_value, expected_class)
-#
-#   if (!arg_is) {
-#
-#     expected_classes <- glue::glue_collapse(x = expected_class,
-#                                             sep = ', ',
-#                                             last = ' or ')
-#
-#     arg_classes <- glue::glue_collapse(x = class(arg_value),
-#                                        sep = ', ',
-#                                        last = ' or ')
-#
-#     error_msg <- glue::glue(
-#       "{arg_name} should inherit from class <{expected_classes}>",
-#       "\nbut instead inherits from <{arg_classes}>"
-#     )
-#
-#     stop(as.character(error_msg), call. = FALSE)
-#
-#   }
-#
-# }
+check_arg_is <- function(arg_value, arg_name, expected_class){
+
+  arg_is <- inherits(arg_value, expected_class)
+
+  if (!arg_is) {
+
+    expected_classes <- paste_collapse(x = expected_class,
+                                       sep = ', ',
+                                       last = ' or ')
+
+    arg_classes <- paste_collapse(x = class(arg_value),
+                                  sep = ', ',
+                                  last = ' or ')
+
+    error_msg <- paste0(
+      arg_name, " should inherit from class <", expected_classes, ">",
+      "\nbut instead inherits from <", arg_classes, ">"
+    )
+
+    stop(error_msg, call. = FALSE)
+
+  }
+
+}

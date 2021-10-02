@@ -24,7 +24,7 @@ a numeric vector with integer values.
 }
 \description{
 \code{predrisk_grp_prcnt()} is a simple wrapper for \code{cut} that is meant to be used
-to create an input value for \code{\link[=calib_test_gnd_manual]{calib_test_gnd_manual()}}  (specifically, the
+to create an input value for \code{\link[=scalib_gnd_manual]{scalib_gnd_manual()}}  (specifically, the
 \code{group} input argument).
 }
 \examples{

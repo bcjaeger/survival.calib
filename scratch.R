@@ -2,8 +2,6 @@
 
 library(survival)
 
-library(pec)
-
 library(polspline)
 
 cc <- complete.cases(flchain)
