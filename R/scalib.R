@@ -17,8 +17,6 @@
 #'
 #' @examples
 
-
-
 scalib <- function(pred_risk,
                    pred_horizon,
                    event_status,

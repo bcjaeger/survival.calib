@@ -179,31 +179,28 @@ bcj <- scalib(
   pred_horizon = pred_horizon,
   event_status = data_test$death,
   event_time = data_test$futime
-)
-
-bcj <- scalib_gnd(bcj)
+) |>
+ scalib_gnd()
 
 test_that(
   desc = "results match Olga Demler's original code",
   code = {
-    for (i in seq_along(risk_times)) {
-      expect_equal(as.numeric(bcj$data_outputs$gnd_chisq[i]),
-                   as.numeric(orig[[i]]['chi2gw']),
-                   ignore_attr = TRUE)
-      expect_equal(as.numeric(bcj$data_outputs$gnd_pvalue[i]),
-                   as.numeric(orig[[i]]['pvalgw']),
+    for (i in seq_along(orig)) {
+      expect_equal(as.numeric(bcj$data_outputs[i,c('gnd_df', 'gnd_chisq','gnd_pvalue')]),
+                   as.numeric(orig[[i]]),
                    ignore_attr = TRUE)
     }
-  })
+  }
+)
 
 # TEST ERROR CATCHING: invalid columns in inputs -----------------------------
 
-.scalib <- scalib(pred_risk = risk_pred[, 1],
-                  pred_horizon = risk_times[1],
+.scalib <- scalib(pred_risk = pred_risk[[1]],
+                  pred_horizon = pred_horizon,
                   event_status = data_test$death,
                   event_time = data_test$futime)
 
-.scalib$data_inputs$group <- risk_groups[, 1]
+.scalib$data_inputs$group <- risk_groups[[1]]
 
 test_that(
   desc = 'invalid column inputs trigger errors',
@@ -212,12 +209,6 @@ test_that(
       scalib_gnd_manual(.scalib, pred_risk_col = 'not_right'),
       regexp = 'not_right is not a column'
     )
-    expect_error(
-      scalib_gnd_manual(.scalib,
-                             pred_risk_col = 'pred_risk',
-                             group_col = 'bad_group'),
-      regexp = 'bad_group is not a column'
-    )
   }
 )
 
@@ -225,43 +216,44 @@ test_that(
 
 .scalib_bad <- .scalib
 
-.scalib_bad$data_inputs[group == 1, event_status := 0]
+.group_bad <- risk_groups[[1]]
+
+.scalib_bad$data_inputs$event_status[.group_bad==1] = 0
 
 test_that(
-  desc = 'if a group has < group_min_events_stop, error is triggered',
-  code = {
-    expect_error(
-      scalib_gnd_manual(.scalib_bad,
-                             pred_risk_col = 'pred_risk',
-                             group_min_events_stop = 3),
-      regexp = 'at least 1 group contains < 3 events'
-    )
-  }
+ desc = 'if a group has < group_min_events_stop, error is triggered',
+ code = {
+  expect_error(
+   scalib_gnd_manual(.scalib_bad,
+                     pred_risk_col = 'pred_risk',
+                     group_min_events_stop = 3,
+                     group = .group_bad),
+   regexp = 'at least 1 group contains < 3 events'
+  )
+ }
 )
 
-g1_status <- .scalib_bad$data_inputs[group == 1][['event_status']]
-g1_status[1:5] <- 1
+g1_status <- which(.group_bad == 1)
+.scalib_bad$data_inputs$event_status[g1_status[1:5]] = 1
 
-.scalib_bad$data_inputs[group == 1, event_status := g1_status]
 
 test_that(
-  desc = 'if a group has < group_min_events_warn, warning is triggered',
-  code = {
-    expect_warning(
-      scalib_gnd_manual(.scalib_bad,
-                             pred_risk_col = 'pred_risk',
-                             group_min_events_warn = 6),
-      regexp = 'at least 1 group contains < 6 events'
-    )
-  }
+ desc = 'if a group has < group_min_events_warn, warning is triggered',
+ code = {
+  expect_warning(
+   scalib_gnd_manual(.scalib_bad,
+                     pred_risk_col = 'pred_risk',
+                     group_min_events_warn = 6,
+                     group = .group_bad),
+   regexp = 'at least 1 group contains < 6 events'
+  )
+ }
 )
-
-
 
 # TEST SCALIB_GND: binding outputs properly
 
 .scalib <- scalib(
-  pred_risk = lapply(list(model_1, model_2, model_3),
+  pred_risk = lapply(list(m1=model_1, m2=model_2, m3=model_3),
                      predictRisk,
                      newdata = data_test,
                      times = pred_horizon),
@@ -271,6 +263,16 @@ test_that(
 )
 
 .scalib <- scalib_gnd(.scalib)
+
+test_that(
+ desc = 'names from list are preserved in scalib objects',
+ code = {
+  expect_equal(as.character(.scalib$data_outputs$._id_.),
+               c('m1','m2','m3'))
+ }
+)
+
+
 
 # TEST ERROR/WARNING CATCHING: auto (unfinished) -----------------------------
 

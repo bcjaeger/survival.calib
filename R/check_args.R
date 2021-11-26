@@ -135,6 +135,8 @@ check_bound_lwr <- function(arg_value, arg_name, bound_lwr) {
 
 }
 
+
+
 check_bound_upr <- function(arg_value, arg_name, bound_upr) {
 
   if(any(arg_value > bound_upr)){

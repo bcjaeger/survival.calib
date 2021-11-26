@@ -412,6 +412,8 @@ scalib_gnd_manual <- function(scalib_object,
     )
   ]
 
+  gnd_data$group <- group
+
   setnames(gnd_data, old = pred_risk_col, new = '._pred_.')
 
   hoslem_data <- gnd_data[

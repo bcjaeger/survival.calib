@@ -15,7 +15,7 @@ effect1.df <- .flchain[train_index, ]
 
 effect2.df <- .flchain[-train_index, ]
 
-cox1 <- coxph(Surv(futime,death) ~ . - chapter, x=TRUE, data = effect1.df)
+cox1 <- coxph(Surv(futime,death) ~ age+sex, x=TRUE, data = effect1.df)
 
 times <- 3000
 
@@ -34,38 +34,33 @@ calibrate.cox <- hare(data=effect2.df$futime,
 predict.grid.cox <- seq(
         quantile(effect2.df$cox.1yr, probs = 0.01),
         quantile(effect2.df$cox.1yr, probs = 0.99),
-        length = 100
+        length = 500
 )
 
 predict.grid.cox.cll <- log(-log(1-predict.grid.cox))
 
 predict.calibrate.cox <- phare(times,predict.grid.cox.cll,calibrate.cox)
 
-
-test_that()
-
 .scalib <-
-        scalib(pred_risk = predict.cox,
-               pred_horizon = times,
-               event_status = effect2.df$death,
-               event_time = effect2.df$futime)
-
-hare <- scalib_hare(
-        predicted_risk = predict.cox,
+ scalib(pred_risk = predict.cox,
+        pred_horizon = times,
         event_status = effect2.df$death,
-        event_time = effect2.df$futime,
-        time_predict = times
-)
-
-check_obs <- hare$data$observed == predict.calibrate.cox
-check_prd <- log_neg_log_complement(hare$data$predicted)==predict.grid.cox.cll
+        event_time = effect2.df$futime) |>
+ scalib_hare()
 
 test_that(
-        desc = 'survival.calib matches the original calib slope hare code',
-        code = {
-                expect_true(all(check_obs))
-                expect_true(all(check_prd))
-        }
+ desc = 'survival.calib matches the original calib slope hare code',
+ code = {
+
+  expect_equal(.scalib$data_outputs$hare_data_plot[[1]]$observed,
+               predict.calibrate.cox)
+
+  expect_equal(
+   log_neg_log_complement(.scalib$data_outputs$hare_data_plot[[1]]$predicted),
+   predict.grid.cox.cll
+  )
+
+ }
 )
 
 
