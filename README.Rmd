@@ -37,7 +37,6 @@ You can install `survival.calib` from GitHub with:
 remotes::install_github("bcjaeger/survival.calib")
 ```
 
-
 ## Example
 
 Let's apply the Namwood-Green-D'Agostino (GND) test to assess calibration of a proportional hazards model. First, we load packages and curate some data for modeling.
@@ -75,41 +74,53 @@ risk_mdl <- coxph(
 )
 
 # step 3
-time_predict <- 4000
-risk_pred <- predictRisk(risk_mdl,
+pred_horizon <- 4000
+pred_risk <- predictRisk(risk_mdl,
                          newdata = flchain[-train_index, ],
-                         times = time_predict)
+                         times = pred_horizon)
 
 ```
 
-Once we have predicted risk values, we can go in two directions: 
+Once we have predicted risk values, we can create a `scalib` (survival calibration) object:
 
-1. Create risk groups by hand and pass the risk group assignments into `gnd_test_manual`.
-1. Use `gnd_test_auto`, which creates risk groups for you.
+```{r}
+
+sc <- scalib(pred_risk = list(cph = pred_risk),
+             pred_horizon = pred_horizon,
+             event_time = flchain$futime[-train_index],
+             event_status = flchain$death[-train_index])
+
+print(sc)
+
+```
+
+Now we can go in two directions: 
+
+1. Create risk groups by hand and pass the risk group assignments into `scalib_gnd_manual`.
+1. Use `scalib_gnd`, which creates risk groups for you.
 
 We'll show both approaches.
 
 ### GND test (manual approach)
 
-The manual GND test requires a `group` input value that designates which group each observation in the testing data belongs to. Creation of the `group` input is up to the user, although there are functions that help, e.g., `cut_percentiles` will create quantile groups for you. 
+The manual GND test requires a `group` input value that designates which group each observation in the testing data belongs to. Creation of the `group` input is up to the user.
 
 ```{r}
 
 # Create risk groups:
-risk_groups <- cut_percentiles(risk_pred, g = 10)
+pctls <- quantile(pred_risk, probs = c(0:10) / 10)
+risk_groups <- cut(pred_risk, breaks = pctls, include.lowest = TRUE)
+risk_groups <- as.numeric(risk_groups)
 
 # supply predicted risk, observed outcomes, 
 # time of prediction, and group assignments
 # to the manual GND test function.
-gnd_result_manual <- 
- gnd_test_manual(predicted_risk = risk_pred,
-                 event_time = flchain$futime[-train_index],
-                 event_status = flchain$death[-train_index],
-                 time_predict = time_predict,
-                 group = risk_groups,
-                 verbose = 0)
 
-# peak at the results
+gnd_result_manual <- scalib_gnd_manual(scalib_object = sc, 
+                                       pred_risk_col = 'cph',
+                                       group = risk_groups)
+
+# print the updated scalib object
 gnd_result_manual
 
 ```
@@ -125,20 +136,19 @@ Demler et al. show that the GND test has high variability if there are less than
 
 ```{r}
 
-gnd_result_auto <- 
- gnd_test_auto(predicted_risk = risk_pred,
-               event_time = flchain$futime[-train_index],
-               event_status = flchain$death[-train_index],
-               time_predict = time_predict,
-               group_count_init = 45,
-               group_method = 'lump',
-               verbose = 1)
 
+gnd_result_auto <- scalib_gnd(scalib_object = sc,
+                              group_method = 'lump', 
+                              group_count_init = 45,
+                              verbose = 1)
+
+# print the updated scalib object
 gnd_result_auto
+
 
 ```
 
-You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, don't use 45 groups (the default value for `group_count_init` is 10).
+You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, use 10 groups (the default value for `group_count_init`).
 
 # References
 

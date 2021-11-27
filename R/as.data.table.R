@@ -15,7 +15,32 @@
 #' @export
 #'
 #' @examples
+#'
+#'
+#'  library(data.table)
+#'
+#'  sc <- scalib(pred_risk = pbc_scalib$predrisk,
+#'               pred_horizon = 2500,
+#'               event_time = pbc_scalib$test$time,
+#'               event_status = pbc_scalib$test$status)
+#'
+#'  print(sc)
+#'
+#'  as.data.table(sc)
+#'
+#'  sc_gnd <- scalib_gnd(sc)
+#'
+#'  as.data.table(sc_gnd)
+#'
+#'
 as.data.table.scalib <- function(x, ...){
+
+ # good ole' CRAN
+ . = NULL
+ ._id_. = NULL
+ pred_risk = NULL
+ event_time = NULL
+ event_status = NULL
 
  dt_inputs <- melt(x$data_inputs,
                    measure.vars = attr(x, 'pred_risk_cols'),
@@ -31,6 +56,8 @@ as.data.table.scalib <- function(x, ...){
   ),
   by = ._id_.
  ]
+
+ if(is_empty(x$data_outputs)) return(dt_inputs)
 
  dt_outputs <- x$data_outputs[
   ,

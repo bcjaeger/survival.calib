@@ -26,58 +26,50 @@
 #' @examples
 #'
 #' # packages
-#' library(riskRegression)
-#' library(survival)
 #' library(ggplot2)
+#' library(tidyr)
+#' library(dplyr)
 #'
-#' # set index for training data
-#' set.seed(329)
+#' sc <- scalib(pred_risk = pbc_scalib$predrisk,
+#'              pred_horizon = 2500,
+#'              event_time = pbc_scalib$test$time,
+#'              event_status = pbc_scalib$test$status)
 #'
-#' model_data <- na.omit(flchain)
+#' sc_hare <- scalib_hare(sc)
 #'
-#' train_index <- sample(nrow(model_data), size = 1000)
+#' print(sc_hare)
 #'
-#' # fit cox PH model using train data
-#' risk_mdl <- coxph(
-#'   data = model_data[train_index, ],
-#'   x = TRUE,
-#'   formula = Surv(futime, death) ~ .
-#' )
+#' data_gg <- sc_hare$data_outputs |>
+#'   select(._id_., hare_data_plot) |>
+#'   unnest(hare_data_plot)
 #'
-#' # set time of prediction
-#' time_predict <- 1500
+#' data_bins <- predrisk_bin_segments(sc_hare, bin_count = 30) |>
+#'  mutate(._id_.)
 #'
-#' # predict risk in the testing data
-#' risk_pred <- predictRisk(risk_mdl,
-#'                          newdata = model_data[-train_index, ],
-#'                          times = time_predict)
+#' id_labels <- c(prop_hazard = "Cox proportional hazards",
+#'                rsf_axis = "Random survival forest (axis based splitting)",
+#'                gradient_booster = "Gradient boosted decision trees",
+#'                rsf_oblique = "Random survival forest (oblique splitting)")
 #'
-#' calslope_hare <- calib_slope_hare(
-#'   predicted_risk = risk_pred,
-#'   event_status = model_data$death[-train_index],
-#'   event_time = model_data$futime[-train_index],
-#'   time_predict = time_predict,
-#'   verbose = 2
-#' )
-#'
-#' calslope_hare
-#'
-#' ggplot(calslope_hare$slope) +
+#' ggplot(data_gg) +
 #'   aes(x = predicted, y = observed) +
 #'   geom_line() +
-#'   geom_abline(col = 'red', linetype = 2) +
+#'   geom_abline(col = 'grey', linetype = 2) +
 #'   geom_hline(yintercept = 0, col = 'grey') +
 #'   theme_bw() +
 #'   theme(panel.grid = element_blank()) +
 #'   coord_cartesian(xlim = c(0, 1),
 #'                   ylim = c(-0.1, 1)) +
-#'   geom_segment(data = calslope_hare$bins,
-#'                size = 2,
+#'   geom_segment(data = data_bins,
+#'                size = 4,
+#'                alpha = 0.50,
+#'                col = 'grey',
 #'                mapping = aes(x = x,
 #'                              y = y,
 #'                              xend = xend,
-#'                              yend = yend,
-#'                              color = factor(event_status)))
+#'                              yend = yend)) +
+#'  facet_wrap(~._id_., labeller = labeller(._id_. = id_labels)) +
+#'  labs(x = 'Predicted risk', y = 'Observed risk')
 
 
 scalib_hare <- function(scalib_object,

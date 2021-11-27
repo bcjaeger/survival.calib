@@ -29,6 +29,7 @@ to create an input value for \code{\link[=scalib_gnd_manual]{scalib_gnd_manual()
 }
 \examples{
 
-predrisk_grp_prcnt(sort(rnorm(100)), g = 10)
+set.seed(32987)
+predrisk_grp_prcnt(sort(runif(100)), g = 10)
 
 }

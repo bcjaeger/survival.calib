@@ -23,3 +23,12 @@ an object of class 'scalib'
 \description{
 Survival calibration objects
 }
+\examples{
+
+sc <- scalib(pred_risk = pbc_scalib$predrisk,
+             pred_horizon = 2500,
+             event_time = pbc_scalib$test$time,
+             event_status = pbc_scalib$test$status)
+
+print(sc)
+}

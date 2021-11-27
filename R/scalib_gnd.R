@@ -19,10 +19,6 @@
 #'   that contains predicted risk values. This variable should be in
 #'   `scalib_object$data_inputs`.
 #'
-#' @param group_col (_character value_) the column name of the variable
-#'   that contains risk group values. This variable should be in
-#'   `scalib_object$data_inputs`
-#'
 #' @param group_method (_character value_; 'lump' or 'redo') If 'lump', then
 #'   a 'lumping' procedure will be applied whenever a group has less than
 #'   `group_min_events_warn` events. The lumping procedure will identify
@@ -35,13 +31,24 @@
 #'  groups to form based on percentiles of `predicted_risk` values.
 #'
 #' @param group_count_min (_integer value_) the minimum number of
-#'  groups to attempt running the GND test with.
-#'
-#' @param group_min_events_warn (_numeric value_) The lowest event count
-#'   within a risk group that will not cause a warning (see details).
+#'  groups to attempt running the GND test with. Only relevant if
+#'  using `scalib_gnd_manual`.
 #'
 #' @param group_min_events_stop (_numeric value_) The lowest event count
 #'   within a risk group that will not cause a hard stop (see details).
+#'   Only relevant if using `scalib_gnd_manual`.
+#'
+#' @param group_min_events_warn (_numeric value_) The lowest event count
+#'   within a risk group that will not cause a warning (see details).
+#'   Only relevant if using `scalib_gnd_manual`.
+#'
+#' @param group_min_events (_numeric value_) The minimum number of events
+#'   within a risk group (see details).
+#'
+#' @param group (_numeric vector_) Only relevant if using `scalib_gnd_manual`.
+#'   An integer valued vector with group values starting at 1 and increasing
+#'   by 1 for each additional group. These risk groups are used to run the
+#'   GND test.
 #'
 #' @param verbose (_integer value_) If 0, no output will be printed.
 #'  If 1, some output will be printed. If 2, _all_ output will be printed.
@@ -73,35 +80,11 @@
 #' @export
 #'
 #' @examples
-#' # packages
-#' library(riskRegression)
-#' library(survival)
 #'
-#' # set index for training data
-#' train_index <- 1:3000
-#'
-#' # fit cox PH model using train data
-#' risk_mdl <- coxph(data = flchain[train_index, ],
-#'                   x = TRUE,
-#'                   formula = Surv(futime, death)~age+sex+flc.grp+lambda)
-#'
-#' # set time of prediction
-#' pred_horizon <- 4000
-#'
-#' # predict risk in the testing data
-#' pred_risk <- predictRisk(risk_mdl,
-#'                          newdata = flchain[-train_index, ],
-#'                          times = pred_horizon)
-#'
-#' # create a scalib object
-#'
-
-# scalib(pred_risk = pred_risk,
-#        pred_horizon = pred_horizon,
-#        event_status = event_status,
-#        event_time = data_test$)
-
-#'
+#' sc <- scalib(pred_risk = pbc_scalib$predrisk,
+#'              pred_horizon = 2500,
+#'              event_time = pbc_scalib$test$time,
+#'              event_status = pbc_scalib$test$status)
 #'
 #' # run GND test using 10 groups; apply some rules:
 #' #  1. require at least 40 events per group
@@ -113,14 +96,11 @@
 #' #  this example just shows the mechanics of the automatic group reduction.
 #' #  The recommended values are the default values.)
 #'
-#' scalib_gnd(predicted_risk = pred_risk,
-#'               event_time = flchain$futime[-train_index],
-#'               event_status = flchain$death[-train_index],
-#'               pred_horizon = pred_horizon,
-#'               group_min_events_warn = 40,
-#'               group_count_init = 10,
-#'               group_count_min = 5,
-#'               verbose = 2)
+#' scalib_gnd(sc,
+#'            group_min_events = 5,
+#'            group_count_init = 10,
+#'            group_count_min = 5,
+#'            verbose = 2)
 
 scalib_gnd <- function(scalib_object,
                        group_method = 'lump',
@@ -130,223 +110,249 @@ scalib_gnd <- function(scalib_object,
                        verbose = 0){
 
 
-  check_call(
-    match.call(),
-    expected = list(
-      'scalib_object' = list(
-        class = 'scalib'
-      ),
-      'group_method' = list(
-        type = 'character',
-        options = c("lump", "redo")
-      ),
-      'group_count_init' = list(
-        type = 'numeric',
-        length = 1,
-        lwr = 2,
-        integer = TRUE
-      ),
-      'group_count_min' = list(
-        type = 'numeric',
-        length = 1,
-        lwr = 2,
-        integer = TRUE
-      ),
-      'verbose' = list(
-        type = 'numeric',
-        length = 1,
-        lwr = 0,
-        integer = TRUE
-      )
-    )
+ check_call(
+  match.call(),
+  expected = list(
+   'scalib_object' = list(
+    class = 'scalib'
+   ),
+   'group_method' = list(
+    type = 'character',
+    options = c("lump", "redo")
+   ),
+   'group_count_init' = list(
+    type = 'numeric',
+    length = 1,
+    lwr = 2,
+    integer = TRUE
+   ),
+   'group_count_min' = list(
+    type = 'numeric',
+    length = 1,
+    lwr = 2,
+    integer = TRUE
+   ),
+   'verbose' = list(
+    type = 'numeric',
+    length = 1,
+    lwr = 0,
+    integer = TRUE
+   )
   )
+ )
 
-  check_scalib(scalib_object, pattern = '^gnd_',
-               msg = paste("scalib_gnd() has already been applied",
-                           "to this scalib_object.\nDo you want to",
-                           "use scalib_gnd() on multiple predicted",
-                           "values?\nIf so, try inputting them into",
-                           "scalib() as a list, matrix, or data.frame"))
+ # Good ole' CRAN
 
-  pred_risk_cols <-  attr(scalib_object, 'pred_risk_cols')
-  pred_horizon <- scalib_object$pred_horizon
+ . = NULL
+ event_time = NULL
+ event_status = NULL
+ value = NULL
+ ._id_. = NULL
+ count = NULL
+ group = NULL
+ N = NULL
+ .update = NULL
+ percent_expected = NULL
+ events_expected = NULL
+ group_n = NULL
+ std.err = NULL
+ surv = NULL
+ gnd_component = NULL
+ variance = NULL
+ percent_observed = NULL
+ events_observed = NULL
+ gnd_pvalue = NULL
+ gnd_chisq = NULL
+ gnd_df = NULL
+ gnd_data = NULL
+ gnd_group_method = NULL
 
-  # browser()
+ check_scalib(scalib_object, pattern = '^gnd_',
+              msg = paste("scalib_gnd() has already been applied",
+                          "to this scalib_object.\nDo you want to",
+                          "use scalib_gnd() on multiple predicted",
+                          "values?\nIf so, try inputting them into",
+                          "scalib() as a list, matrix, or data.frame"))
 
-  # observed event status and times
-  # copy needed to avoid modifying input data
-  dt <- copy(scalib_object$data_inputs)
+ pred_risk_cols <-  attr(scalib_object, 'pred_risk_cols')
+ pred_horizon <- scalib_object$pred_horizon
 
-  # curtailed events and times at prediction horizon
-  dt <- dt[
-    event_time > pred_horizon,
-    `:=`(
-      event_status = 0,
-      event_time = pred_horizon
-    )
-  ]
+ # browser()
 
-  dt <- melt(dt,
-             id.vars = c('event_status', 'event_time'),
-             measure.vars = pred_risk_cols,
-             variable.name = '._id_.')
+ # observed event status and times
+ # copy needed to avoid modifying input data
+ dt <- copy(scalib_object$data_inputs)
+
+ # curtailed events and times at prediction horizon
+ dt <- dt[
+  event_time > pred_horizon,
+  `:=`(
+   event_status = 0,
+   event_time = pred_horizon
+  )
+ ]
+
+ dt <- melt(dt,
+            id.vars = c('event_status', 'event_time'),
+            measure.vars = pred_risk_cols,
+            variable.name = '._id_.')
 
 
-  n_pred_uni <- dt[, .(count=length(unique(value))), by = ._id_.]
+ n_pred_uni <- dt[, .(count=length(unique(value))), by = ._id_.]
 
-  if(any(n_pred_uni$count < group_count_init)){
+ if(any(n_pred_uni$count < group_count_init)){
 
-    offenders <- n_pred_uni[count < group_count_init, ._id_., drop = TRUE]
+  offenders <- n_pred_uni[count < group_count_init, ._id_., drop = TRUE]
 
-    stop("The number of unique predicted risk values ",
-         "should be > the number of groups.\nSee input column(s) ",
-         paste_collapse(offenders, sep = ', ', last = 'and'),
-         call. = FALSE)
+  stop("The number of unique predicted risk values ",
+       "should be > the number of groups.\nSee input column(s) ",
+       paste_collapse(offenders, sep = ', ', last = 'and'),
+       call. = FALSE)
 
+ }
+
+
+ # create rankings of variable values (used to make percentile groups)
+ dt <- dt[, rank := frank(value), by = ._id_.]
+
+ # create the initial groups
+ dt <- dt[, group := ceiling((group_count_init)*rank/(.N+1)), by = ._id_.]
+
+ if(verbose > 0)
+  message("Checking event counts using ",
+          group_count_init, " risk groups...",
+          appendLF = FALSE)
+
+ # count the number of events in each group for each ._id_.
+ events <- dt[event_status == 1, .N, keyby = .(._id_., group)]
+
+ group_count <- group_count_init
+
+ repeat{
+
+  # determine which ._id_. need to be updated with new groups
+  # (this means >=1 of their the groups that have too few events)
+  ids_to_update <-
+   events[, .(.update = any(N < group_min_events)), by = ._id_.]
+
+  ids_to_update <-
+   ids_to_update[.update == TRUE, ._id_., drop = TRUE]
+
+  if(is_empty(ids_to_update)){
+   if(verbose > 0) message("okay", appendLF = TRUE)
+   break
   }
 
+  if(group_count < group_count_min){
+   stop("There are too few events to run the GND test ",
+        "using ", group_count_min, " groups.",
+        call. = FALSE)
+  }
 
-  # create rankings of variable values (used to make percentile groups)
-  dt <- dt[, rank := frank(value), by = ._id_.]
+  if(verbose > 0) message("too few; trying again", appendLF = TRUE)
 
-  # create the initial groups
-  dt <- dt[, group := ceiling((group_count_init)*rank/(.N+1)), by = ._id_.]
+  group_count <- group_count - 1
 
   if(verbose > 0)
-    message("Checking event counts using ",
-            group_count_init, " risk groups...",
-            appendLF = FALSE)
+   message("Checking event counts using ",
+           group_count, " risk groups...",
+           appendLF = FALSE)
 
-  # count the number of events in each group for each ._id_.
+
+  dt <- dt[
+   ._id_. %in% ids_to_update,
+   group := switch(
+    group_method,
+    'redo' = ceiling((group_count) * rank / (.N + 1)),
+    'lump' = lump_group(group, events = events[._id_. == ._id_.])
+   ),
+   by = ._id_.
+  ]
+
   events <- dt[event_status == 1, .N, keyby = .(._id_., group)]
 
-  group_count <- group_count_init
+ }
 
-  repeat{
+ dt_hoslem <- dt[
+  , .(
+   group_n = .N,
+   # count the number of events in each group
+   events_observed = sum(event_status),
+   events_expected = sum(value)
+  ),
+  keyby = .(._id_., group)
+ ]
 
-    # determine which ._id_. need to be updated with new groups
-    # (this means >=1 of their the groups that have too few events)
-    ids_to_update <-
-      events[, .(.update = any(N < group_min_events)), by = ._id_.]
+ dt_hoslem <- dt_hoslem[, percent_expected := events_expected / group_n]
 
-    ids_to_update <-
-      ids_to_update[.update == TRUE, ._id_., drop = TRUE]
-
-    if(is_empty(ids_to_update)){
-      if(verbose > 0) message("okay", appendLF = TRUE)
-      break
-    }
-
-    if(group_count < group_count_min){
-      stop("There are too few events to run the GND test ",
-           "using ", group_count_min, " groups.",
-           call. = FALSE)
-    }
-
-    if(verbose > 0) message("too few; trying again", appendLF = TRUE)
-
-    group_count <- group_count - 1
-
-    if(verbose > 0)
-      message("Checking event counts using ",
-              group_count, " risk groups...",
-              appendLF = FALSE)
-
-
-    dt <- dt[
-      ._id_. %in% ids_to_update,
-      group := switch(
-        group_method,
-        'redo' = ceiling((group_count) * rank / (.N + 1)),
-        'lump' = lump_group(group, events = events[._id_. == ._id_.])
-        ),
-      by = ._id_.
-    ]
-
-    events <- dt[event_status == 1, .N, keyby = .(._id_., group)]
-
-  }
-
-  dt_hoslem <- dt[
-    , .(
-      group_n = .N,
-      # count the number of events in each group
-      events_observed = sum(event_status),
-      events_expected = sum(value)
-    ),
-    keyby = .(._id_., group)
-  ]
-
-  dt_hoslem <- dt_hoslem[, percent_expected := events_expected / group_n]
-
-  dt_gnd <- dt[
-    ,
-    # summarizing the inputs by fitting a survfit
-    # object to each group. Notably, we only need
-    # two things (surv and std.err) from the survfit
-    # object and they only need to be indexed at
-    # their second to last value. Need to unclass()
-    # survfit objects before pulling the data out.
-    lapply(
-      unclass(
-        survival::survfit(
-          formula = survival::Surv(event_time, event_status) ~ 1,
-          se.fit = TRUE
-        )
-      )[c('surv', 'std.err')],
-      function(x) x[length(x)-1]
-    ),
-    keyby = .(._id_., group)
-  ]
-
-  dt_gnd <- dt_gnd[, std.err := std.err * surv]
-
-  dt_gnd <- dt_gnd[dt_hoslem]
-
-  dt_gnd <- dt_gnd[
-    # mutate; derive some columns
-    , `:=`(
-      percent_observed = 1 - surv,
-      variance = std.err^2
+ dt_gnd <- dt[
+  ,
+  # summarizing the inputs by fitting a survfit
+  # object to each group. Notably, we only need
+  # two things (surv and std.err) from the survfit
+  # object and they only need to be indexed at
+  # their second to last value. Need to unclass()
+  # survfit objects before pulling the data out.
+  lapply(
+   unclass(
+    survival::survfit(
+     formula = survival::Surv(event_time, event_status) ~ 1,
+     se.fit = TRUE
     )
-  ][ # mutate again, using the columns we just made
-    , gnd_component := fifelse(
-      variance == 0,
-      yes = 0,
-      no = (percent_observed - percent_expected)^2 / variance
-    )
-  ]
+   )[c('surv', 'std.err')],
+   function(x) x[length(x)-1]
+  ),
+  keyby = .(._id_., group)
+ ]
 
-  dt_gnd <- dt_gnd[
-    ,
-    .(
-      gnd_df = .N - 1,
-      gnd_chisq = sum(gnd_component),
-      gnd_data = list(
-        data.table(
-          group,
-          group_n,
-          events_observed,
-          events_expected,
-          percent_observed,
-          percent_expected,
-          variance,
-          gnd_component)
-      ),
-      gnd_group_method = group_method
-    ),
-    by = ._id_.]
+ dt_gnd <- dt_gnd[, std.err := std.err * surv]
 
-  dt_gnd <- dt_gnd[, gnd_pvalue := 1 - stats::pchisq(gnd_chisq, gnd_df)]
+ dt_gnd <- dt_gnd[dt_hoslem]
 
-  dt_gnd <- dt_gnd[, .(._id_.,
-                       gnd_df,
-                       gnd_chisq,
-                       gnd_pvalue,
-                       gnd_data,
-                       gnd_group_method) ]
+ dt_gnd <- dt_gnd[
+  # mutate; derive some columns
+  , `:=`(
+   percent_observed = 1 - surv,
+   variance = std.err^2
+  )
+ ][ # mutate again, using the columns we just made
+  , gnd_component := fifelse(
+   variance == 0,
+   yes = 0,
+   no = (percent_observed - percent_expected)^2 / variance
+  )
+ ]
 
-  scalib_absorb(scalib_object, dt_gnd)
+ dt_gnd <- dt_gnd[
+  ,
+  .(
+   gnd_df = .N - 1,
+   gnd_chisq = sum(gnd_component),
+   gnd_data = list(
+    data.table(
+     group,
+     group_n,
+     events_observed,
+     events_expected,
+     percent_observed,
+     percent_expected,
+     variance,
+     gnd_component)
+   ),
+   gnd_group_method = group_method
+  ),
+  by = ._id_.]
+
+ dt_gnd <- dt_gnd[, gnd_pvalue := 1 - stats::pchisq(gnd_chisq, gnd_df)]
+
+ dt_gnd <- dt_gnd[, .(._id_.,
+                      gnd_df,
+                      gnd_chisq,
+                      gnd_pvalue,
+                      gnd_data,
+                      gnd_group_method) ]
+
+ scalib_absorb(scalib_object, dt_gnd)
 
 }
 
@@ -361,161 +367,178 @@ scalib_gnd_manual <- function(scalib_object,
                               group_min_events_stop = 2,
                               verbose = 0){
 
-  check_call(
-    match.call(),
-    expected = list(
-      'scalib_object' = list(
-        class = 'scalib'
-      ),
-      'pred_risk_col' = list(
-        type = 'character',
-        length = 1
-      ),
-      'group' = list(
-        type = 'numeric',
-        length = nrow(scalib_object$data_inputs),
-        integer = TRUE
-      ),
-      'group_min_events_warn' = list(
-        type = 'numeric',
-        length = 1,
-        lwr = 5,
-        integer = TRUE
-      ),
-      'group_min_events_stop' = list(
-        type = 'numeric',
-        length = 1,
-        lwr = 2,
-        integer = TRUE
-      ),
-      'verbose' = list(
-        type = 'numeric',
-        length = 1,
-        lwr = 0,
-        integer = TRUE
-      )
-    )
+ check_call(
+  match.call(),
+  expected = list(
+   'scalib_object' = list(
+    class = 'scalib'
+   ),
+   'pred_risk_col' = list(
+    type = 'character',
+    length = 1
+   ),
+   'group' = list(
+    type = 'numeric',
+    length = nrow(scalib_object$data_inputs),
+    integer = TRUE
+   ),
+   'group_min_events_warn' = list(
+    type = 'numeric',
+    length = 1,
+    lwr = 5,
+    integer = TRUE
+   ),
+   'group_min_events_stop' = list(
+    type = 'numeric',
+    length = 1,
+    lwr = 2,
+    integer = TRUE
+   ),
+   'verbose' = list(
+    type = 'numeric',
+    length = 1,
+    lwr = 0,
+    integer = TRUE
+   )
+  )
+ )
+
+ # good ole' CRAN...
+ . = NULL
+ event_time = NULL
+ event_status = NULL
+ ._pred_. = NULL
+ percent_expected = NULL
+ events_expected = NULL
+ group_n = NULL
+ std.err = NULL
+ surv = NULL
+ gnd_component = NULL
+ variance = NULL
+ percent_observed = NULL
+ events_observed = NULL
+
+ if(pred_risk_col %nin% names(scalib_object$data_inputs))
+  stop(pred_risk_col, " is not a column in the survival ",
+       "calibration object's input data", call. = FALSE)
+
+ gnd_data <- copy(scalib_object$data_inputs)
+
+ pred_horizon <- scalib_object$pred_horizon
+
+ # curtailed events and times at prediction horizon
+ gnd_data <- gnd_data[
+  event_time > pred_horizon,
+  `:=`(
+   event_status = 0,
+   event_time = pred_horizon
+  )
+ ]
+
+ gnd_data$group <- group
+
+ setnames(gnd_data, old = pred_risk_col, new = '._pred_.')
+
+ hoslem_data <- gnd_data[
+  , .(
+   group_n = .N,
+   # count the number of events in each group
+   # to determine whether the GND test is safe
+   events_observed = sum(event_status),
+   events_expected = sum(._pred_.)
+  ),
+  keyby = group
+ ][, percent_expected := events_expected / group_n]
+
+ if (any(hoslem_data$events_observed < group_min_events_stop))
+  stop(
+   "at least 1 group contains < ", group_min_events_stop, " events.",
+   call. = FALSE
   )
 
-  if(pred_risk_col %nin% names(scalib_object$data_inputs))
-    stop(pred_risk_col, " is not a column in the survival ",
-         "calibration object's input data", call. = FALSE)
+ if (any(hoslem_data$events_observed < group_min_events_warn)){
 
-  gnd_data <- copy(scalib_object$data_inputs)
+  msg <- paste0("at least 1 group contains < ",
+                group_min_events_warn, " events")
 
-  # curtailed events and times at prediction horizon
-  gnd_data <- gnd_data[
-    event_time > pred_horizon,
-    `:=`(
-      event_status = 0,
-      event_time = pred_horizon
+  warning(msg, call. = FALSE)
+
+ }
+
+ gnd_data <- gnd_data[
+  ,
+  # summarizing the inputs by fitting a survfit
+  # object to each group. Notably, we only need
+  # two things (surv and std.err) from the survfit
+  # object and they only need to be indexed at
+  # their second to last value. Need to unclass()
+  # survfit objects before pulling the data out.
+  lapply(
+   unclass(
+    survival::survfit(
+     formula = survival::Surv(event_time, event_status) ~ 1,
+     se.fit = TRUE
     )
-  ]
+   )[c('surv', 'std.err')],
+   function(x) x[length(x)-1]
+  ),
+  keyby = group
+ ][, std.err := std.err * surv]
 
-  gnd_data$group <- group
+ gnd_data <- gnd_data[hoslem_data][
+  # mutate; derive some columns
+  , `:=`(
+   percent_observed = 1 - surv,
+   variance = std.err^2
+  )
+ ][ # mutate again, using the columns we just made
+  , gnd_component := fifelse(
+   variance == 0,
+   yes = 0,
+   no = (percent_observed - percent_expected)^2 / variance
+  )
+ ][ # select columns for output
+  ,
+  .(group,
+    group_n,
+    events_observed,
+    events_expected,
+    percent_observed,
+    percent_expected,
+    variance,
+    gnd_component
+  )
+ ]
 
-  setnames(gnd_data, old = pred_risk_col, new = '._pred_.')
-
-  hoslem_data <- gnd_data[
-    , .(
-      group_n = .N,
-      # count the number of events in each group
-      # to determine whether the GND test is safe
-      events_observed = sum(event_status),
-      events_expected = sum(._pred_.)
-    ),
-    keyby = group
-  ][, percent_expected := events_expected / group_n]
-
-  if (any(hoslem_data$events_observed < group_min_events_stop))
-    stop(
-      "at least 1 group contains < ", group_min_events_stop, " events.",
-      call. = FALSE
+ if(verbose > 0)
+  for(i in seq(nrow(gnd_data))){
+   with(
+    gnd_data[i, , drop = FALSE],
+    message(
+     "Group ", group, " (N = ", group_n, ")",
+     "\n - ", events_observed, " events observed (",
+     format(round(100*percent_observed, digits = 1), nsmall = 1),"%)",
+     "\n - ", round(events_expected, digits = 0), " events expected (",
+     format(round(100*percent_expected, digits = 1), nsmall = 1),"%)",
+     #"\n - ", kmnrisk, " remain in risk pool at T = ", pred_horizon,
+     "\n - GND component: ", round(gnd_component, digits = 3)
     )
-
-  if (any(hoslem_data$events_observed < group_min_events_warn)){
-
-    msg <- paste0("at least 1 group contains < ",
-                  group_min_events_warn, " events")
-
-    warning(msg, call. = FALSE)
-
+   )
   }
 
-  gnd_data <- gnd_data[
-    ,
-    # summarizing the inputs by fitting a survfit
-    # object to each group. Notably, we only need
-    # two things (surv and std.err) from the survfit
-    # object and they only need to be indexed at
-    # their second to last value. Need to unclass()
-    # survfit objects before pulling the data out.
-    lapply(
-      unclass(
-        survival::survfit(
-          formula = survival::Surv(event_time, event_status) ~ 1,
-          se.fit = TRUE
-        )
-      )[c('surv', 'std.err')],
-      function(x) x[length(x)-1]
-    ),
-    keyby = group
-  ][, std.err := std.err * surv]
+ gnd_df <- nrow(gnd_data) - 1
+ gnd_chisq <- sum(gnd_data$gnd_component)
 
-  gnd_data <- gnd_data[hoslem_data][
-    # mutate; derive some columns
-    , `:=`(
-      percent_observed = 1 - surv,
-      variance = std.err^2
-    )
-  ][ # mutate again, using the columns we just made
-    , gnd_component := fifelse(
-      variance == 0,
-      yes = 0,
-      no = (percent_observed - percent_expected)^2 / variance
-    )
-  ][ # select columns for output
-    ,
-    .(group,
-      group_n,
-      events_observed,
-      events_expected,
-      percent_observed,
-      percent_expected,
-      variance,
-      gnd_component
-    )
-  ]
+ gnd_result <- data.table(
+  ._id_. = pred_risk_col,
+  gnd_df = gnd_df,
+  gnd_chisq = gnd_chisq,
+  gnd_pvalue = 1 - stats::pchisq(gnd_chisq, gnd_df),
+  gnd_data = list(gnd_data),
+  gnd_group_method = "custom"
+ )
 
-  if(verbose > 0)
-    for(i in seq(nrow(gnd_data))){
-      with(
-        gnd_data[i, , drop = FALSE],
-        message(
-          "Group ", group, " (N = ", group_n, ")",
-          "\n - ", events_observed, " events observed (",
-          format(round(100*percent_observed, digits = 1), nsmall = 1),"%)",
-          "\n - ", round(events_expected, digits = 0), " events expected (",
-          format(round(100*percent_expected, digits = 1), nsmall = 1),"%)",
-          #"\n - ", kmnrisk, " remain in risk pool at T = ", pred_horizon,
-          "\n - GND component: ", round(gnd_component, digits = 3)
-        )
-      )
-    }
-
-  gnd_df <- nrow(gnd_data) - 1
-  gnd_chisq <- sum(gnd_data$gnd_component)
-
-  gnd_result <- data.table(
-    ._id_. = pred_risk_col,
-    gnd_df = gnd_df,
-    gnd_chisq = gnd_chisq,
-    gnd_pvalue = 1 - stats::pchisq(gnd_chisq, gnd_df),
-    gnd_data = list(gnd_data),
-    gnd_group_method = "custom"
-  )
-
-  scalib_absorb(scalib_object, gnd_result)
+ scalib_absorb(scalib_object, gnd_result)
 
 }
 

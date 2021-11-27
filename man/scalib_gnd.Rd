@@ -64,7 +64,11 @@ will be re-done using \link{predrisk_grp_prcnt} but with one less group.
 groups to form based on percentiles of \code{predicted_risk} values.}
 
 \item{group_count_min}{(\emph{integer value}) the minimum number of
-groups to attempt running the GND test with.}
+groups to attempt running the GND test with. Only relevant if
+using \code{scalib_gnd_manual}.}
+
+\item{group_min_events}{(\emph{numeric value}) The minimum number of events
+within a risk group (see details).}
 
 \item{verbose}{(\emph{integer value}) If 0, no output will be printed.
 If 1, some output will be printed. If 2, \emph{all} output will be printed.}
@@ -73,11 +77,18 @@ If 1, some output will be printed. If 2, \emph{all} output will be printed.}
 that contains predicted risk values. This variable should be in
 \code{scalib_object$data_inputs}.}
 
+\item{group}{(\emph{numeric vector}) Only relevant if using \code{scalib_gnd_manual}.
+An integer valued vector with group values starting at 1 and increasing
+by 1 for each additional group. These risk groups are used to run the
+GND test.}
+
 \item{group_min_events_warn}{(\emph{numeric value}) The lowest event count
-within a risk group that will not cause a warning (see details).}
+within a risk group that will not cause a warning (see details).
+Only relevant if using \code{scalib_gnd_manual}.}
 
 \item{group_min_events_stop}{(\emph{numeric value}) The lowest event count
-within a risk group that will not cause a hard stop (see details).}
+within a risk group that will not cause a hard stop (see details).
+Only relevant if using \code{scalib_gnd_manual}.}
 
 \item{pred_risk}{(\emph{numeric vector}, \emph{list}, \emph{data frame}, or \emph{matrix})
 predicted risk values for the event at or before \code{pred_horizon}}
@@ -88,10 +99,6 @@ predicted risk values for the event at or before \code{pred_horizon}}
 of this vector should be 0 (event censored) and 1 (event observed).}
 
 \item{event_time}{(\emph{numeric vector}) observed event times}
-
-\item{group_col}{(\emph{character value}) the column name of the variable
-that contains risk group values. This variable should be in
-\code{scalib_object$data_inputs}}
 }
 \value{
 an object of class \code{scalib} (see \link{scalib})
@@ -125,29 +132,11 @@ in any group, the GND test is unstable and risk groups should be collapsed.
 Therefore, the default value of \code{group_min_events_stop} is 2.
 }
 \examples{
-# packages
-library(riskRegression)
-library(survival)
 
-# set index for training data
-train_index <- 1:3000
-
-# fit cox PH model using train data
-risk_mdl <- coxph(data = flchain[train_index, ],
-                  x = TRUE,
-                  formula = Surv(futime, death)~age+sex+flc.grp+lambda)
-
-# set time of prediction
-pred_horizon <- 4000
-
-# predict risk in the testing data
-pred_risk <- predictRisk(risk_mdl,
-                         newdata = flchain[-train_index, ],
-                         times = pred_horizon)
-
-# create a scalib object
-
-
+sc <- scalib(pred_risk = pbc_scalib$predrisk,
+             pred_horizon = 2500,
+             event_time = pbc_scalib$test$time,
+             event_status = pbc_scalib$test$status)
 
 # run GND test using 10 groups; apply some rules:
 #  1. require at least 40 events per group
@@ -159,14 +148,11 @@ pred_risk <- predictRisk(risk_mdl,
 #  this example just shows the mechanics of the automatic group reduction.
 #  The recommended values are the default values.)
 
-scalib_gnd(predicted_risk = pred_risk,
-              event_time = flchain$futime[-train_index],
-              event_status = flchain$death[-train_index],
-              pred_horizon = pred_horizon,
-              group_min_events_warn = 40,
-              group_count_init = 10,
-              group_count_min = 5,
-              verbose = 2)
+scalib_gnd(sc,
+           group_min_events = 5,
+           group_count_init = 10,
+           group_count_min = 5,
+           verbose = 2)
 }
 \references{
 Demler, O.V., Paynter, N.P. and Cook, N.R., 2015. Tests of calibration and

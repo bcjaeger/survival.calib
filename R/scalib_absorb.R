@@ -2,39 +2,43 @@
 
 scalib_absorb <- function(x, y){
 
-  # y is absorbed into x
-  # only use this if x and y have the same input data
+ # y is absorbed into x
+ # only use this if x and y have the same input data
 
-  if(is_scalib(y)){
-    stopifnot(all.equal(x$data_inputs, y$data_inputs))
-    y <- y$data_outputs
-  }
 
-  stopifnot(is.data.frame(y))
+ # good ole' CRAN
+ ._id_. = NULL
 
-  if(is_empty(names(x$data_outputs))){
-    x$data_outputs <- y
-    setkey(x$data_outputs, ._id_.)
-    return(x)
-  }
+ if(is_scalib(y)){
+  stopifnot(all.equal(x$data_inputs, y$data_inputs))
+  y <- y$data_outputs
+ }
 
-  names_are_equal <-
-    same_names(x$data_outputs, y)
+ stopifnot(is.data.frame(y))
 
-  names_are_disjoint <-
-    length(intersect(names(x$data_outputs), names(y))) == 1
+ if(is_empty(names(x$data_outputs))){
+  x$data_outputs <- y
+  setkey(x$data_outputs, ._id_.)
+  return(x)
+ }
 
-  if(!names_are_equal && !names_are_disjoint)
-    browser()
-    # stop("unable to combine scalib objects", call. = FALSE)
+ names_are_equal <-
+  same_names(x$data_outputs, y)
 
-  if(names_are_disjoint){
-    return(output_merge(x,y))
-  }
+ names_are_disjoint <-
+  length(intersect(names(x$data_outputs), names(y))) == 1
 
-  if(names_are_equal){
-    return(output_rbind(x,y))
-  }
+ if(!names_are_equal && !names_are_disjoint)
+  browser()
+ # stop("unable to combine scalib objects", call. = FALSE)
+
+ if(names_are_disjoint){
+  return(output_merge(x,y))
+ }
+
+ if(names_are_equal){
+  return(output_rbind(x,y))
+ }
 
 }
 
@@ -133,20 +137,20 @@ scalib_absorb <- function(x, y){
 
 
 output_rbind <- function(x, y, fill = TRUE){
-  x$data_outputs <- rbind(x$data_outputs,
-                          y,
-                          fill = fill)
-  x
+ x$data_outputs <- rbind(x$data_outputs,
+                         y,
+                         fill = fill)
+ x
 }
 
 output_merge <- function(x, y){
 
-  x$data_outputs <-
-    merge(x = x$data_outputs,
-          y = y,
-          all.x = TRUE,
-          by = '._id_.')
+ x$data_outputs <-
+  merge(x = x$data_outputs,
+        y = y,
+        all.x = TRUE,
+        by = '._id_.')
 
-  x
+ x
 
 }

@@ -16,12 +16,21 @@ predrisk_bin_segments(
 )
 }
 \arguments{
+\item{x}{a numeric vector of predicted risk values or an object of
+class \code{scalib}. If \code{x} is a \code{scalib} object, then the input arguments
+\code{event_time}, \code{event_status}, and \code{pred_horizon} should be left blank.
+(They are filled in using info stored in the \code{scalib} object).}
+
 \item{event_time}{(\emph{numeric vector}) observed event times}
 
 \item{event_status}{(\emph{numeric vector}) observed event status. The values
 of this vector should be 0 (event censored) and 1 (event observed).}
 
 \item{pred_horizon}{(\emph{numeric value}) the time of risk prediction.}
+
+\item{by_event}{If \code{TRUE}, bins will be created for each event type,
+separately. If \code{FALSE}, bins are made in the standard fashion for
+histograms.}
 
 \item{bin_count}{(\emph{integer value}) total count of bins for downstream plots}
 
@@ -39,5 +48,18 @@ standard plotting tools, e.g., \code{ggplot2::ggplot()} (see examples).
 Bin predicted risk for plotting
 }
 \examples{
+
+sc <- scalib(pred_risk = pbc_scalib$predrisk,
+             pred_horizon = 2500,
+             event_time = pbc_scalib$test$time,
+             event_status = pbc_scalib$test$status)
+
+pbins <- predrisk_bin_segments(sc)
+
+print(pbins)
+
+pbins <- predrisk_bin_segments(x = pbc_scalib$predrisk$prop_hazard,
+                               event_time = pbc_scalib$test$time,
+                               event_status = pbc_scalib$test$status)
 
 }

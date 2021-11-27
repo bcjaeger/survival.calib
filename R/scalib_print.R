@@ -28,7 +28,11 @@ print.scalib <- function(x, ...){
   .dots$x <- x$data_inputs
 
   banner_input_length <-
-    max(vapply(capture.output(do.call(print, .dots)), nchar, integer(1)))
+    max(vapply(
+     utils::capture.output(do.call(print, .dots)),
+     nchar,
+     integer(1)
+    ))
     #nchar(capture.output(do.call(print, .dots))[1])
 
   banner_input <- paste(
@@ -52,7 +56,11 @@ print.scalib <- function(x, ...){
     .dots$x <- x$data_outputs
 
     banner_output_length <-
-      max(vapply(capture.output(do.call(print, .dots)), nchar, integer(1)))
+      max(vapply(
+       utils::capture.output(do.call(print, .dots)),
+       nchar,
+       integer(1)
+      ))
 
     banner_output <- paste(
       rep("-", times = banner_output_length - nchar("-- Output data ")),

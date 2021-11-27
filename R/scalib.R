@@ -16,6 +16,13 @@
 #' @export
 #'
 #' @examples
+#'
+#' sc <- scalib(pred_risk = pbc_scalib$predrisk,
+#'              pred_horizon = 2500,
+#'              event_time = pbc_scalib$test$time,
+#'              event_status = pbc_scalib$test$status)
+#'
+#' print(sc)
 
 scalib <- function(pred_risk,
                    pred_horizon,
@@ -106,7 +113,7 @@ make_scalib_input_data.default <- function(pred_risk,
                                            event_status,
                                            event_time){
 
-  .class <- class(predicted_risk)[1]
+  .class <- class(pred_risk)[1]
 
   stop("No applicable method for 'make_scalib_input_data' that can be",
        "\napplied to an object of class ", .class, call. = FALSE)

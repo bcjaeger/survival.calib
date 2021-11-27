@@ -6,11 +6,7 @@
 \alias{survival.calib-package}
 \title{survival.calib: Tests of Calibration in the Survival Setting}
 \description{
-There are multiple tests for mis-calibration in the setting of 
- binary outcomes, but these tests may not maintain a nominal type 1 error rate 
- in the presence of censored outcomes. This package offers tests for calibration 
- that maintain nominal type 1 error rate in the presence of censoring and do 
- not require the assumption of proportional hazards.
+There are multiple tests for mis-calibration in the setting of binary outcomes, but these tests may not maintain a nominal type 1 error rate in the presence of censored outcomes. This package offers tests for calibration that maintain nominal type 1 error rate in the presence of censoring and do not require the assumption of proportional hazards.
 }
 \seealso{
 Useful links:

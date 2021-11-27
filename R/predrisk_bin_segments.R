@@ -7,6 +7,15 @@
 #'
 #' @inheritParams scalib_gnd
 #'
+#' @param x a numeric vector of predicted risk values or an object of
+#'   class `scalib`. If `x` is a `scalib` object, then the input arguments
+#'   `event_time`, `event_status`, and `pred_horizon` should be left blank.
+#'   (They are filled in using info stored in the `scalib` object).
+#'
+#' @param by_event If `TRUE`, bins will be created for each event type,
+#'   separately. If `FALSE`, bins are made in the standard fashion for
+#'   histograms.
+#'
 #' @param bin_count (_integer value_) total count of bins for downstream plots
 #'
 #' @param bin_yintercept (_numeric value_) where, relative to the y-axis, the
@@ -22,6 +31,22 @@
 #'
 #' @examples
 #'
+#' sc <- scalib(pred_risk = pbc_scalib$predrisk,
+#'              pred_horizon = 2500,
+#'              event_time = pbc_scalib$test$time,
+#'              event_status = pbc_scalib$test$status)
+#'
+#' pbins <- predrisk_bin_segments(sc)
+#'
+#' print(pbins)
+#'
+#' pbins <- predrisk_bin_segments(x = pbc_scalib$predrisk$prop_hazard,
+#'                                event_time = pbc_scalib$test$time,
+#'                                event_status = pbc_scalib$test$status)
+#'
+
+
+
 
 predrisk_bin_segments <- function(x,
                                   event_time = NULL,
@@ -187,6 +212,11 @@ predrisk_bin_segments.scalib <- function(x,
     stop("pred_horizon should be NULL when x is a scalib object",
          call. = FALSE)
 
+ # good ole' CRAN
+ . = NULL
+ ._id_. = NULL
+ V1 = NULL
+ value = NULL
 
   pred_risk_cols <- attr(x, 'pred_risk_cols')
 

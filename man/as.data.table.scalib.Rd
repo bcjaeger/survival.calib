@@ -18,3 +18,23 @@ a \link[data.table:data.table]{data.table} object
 Convert \code{scalib} object into a flat data.table containing
 input and output data.
 }
+\examples{
+
+
+ library(data.table)
+
+ sc <- scalib(pred_risk = pbc_scalib$predrisk,
+              pred_horizon = 2500,
+              event_time = pbc_scalib$test$time,
+              event_status = pbc_scalib$test$status)
+
+ print(sc)
+
+ as.data.table(sc)
+
+ sc_gnd <- scalib_gnd(sc)
+
+ as.data.table(sc_gnd)
+
+
+}

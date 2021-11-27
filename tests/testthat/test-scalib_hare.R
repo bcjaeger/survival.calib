@@ -53,12 +53,34 @@ predict.grid.cox.cll <- log(-log(1 - predict.grid.cox))
 predict.calibrate.cox <-
  phare(times, predict.grid.cox.cll, calibrate.cox)
 
-.scalib <- scalib(
-  pred_risk = predict.cox,
-  pred_horizon = times,
-  event_status = effect2.df$death,
-  event_time = effect2.df$futime
- )
+test_that(
+ desc = 'curtailing predicted risk on the boundary',
+ code = {
+
+  expect_warning(
+   scalib(
+    pred_risk = predict.cox,
+    pred_horizon = times,
+    event_status = effect2.df$death,
+    event_time = effect2.df$futime
+   ),
+   regexp = 'either 1 or 0'
+  )
+
+
+ }
+)
+
+suppressWarnings(
+ {
+  .scalib <- scalib(
+   pred_risk = predict.cox,
+   pred_horizon = times,
+   event_status = effect2.df$death,
+   event_time = effect2.df$futime
+  )
+ }
+)
 
 .scalib_slope <- scalib_hare(.scalib)
 
