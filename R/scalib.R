@@ -22,6 +22,7 @@
 #'              event_time = pbc_scalib$test$time,
 #'              event_status = pbc_scalib$test$status)
 #'
+#'
 #' print(sc)
 
 scalib <- function(pred_risk,
