@@ -40,7 +40,8 @@ Suggests:
     knitr,
     rmarkdown
 Config/testthat/edition: 3
-URL: https://bcjaeger.github.io/survival.calib, https://github.com/bcjaeger/survival.calib
+URL: https://bcjaeger.github.io/survival.calib,
+    https://github.com/bcjaeger/survival.calib
 BugReports: https://github.com/bcjaeger/survival.calib/issues
 VignetteBuilder: knitr
 Depends: 
