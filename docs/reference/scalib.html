@@ -167,6 +167,33 @@ of this vector should be 0 (event censored) and 1 (event observed).</p></td>
 
     <p>an object of class 'scalib'</p>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='va'>sc</span> <span class='op'>&lt;-</span> <span class='fu'>scalib</span><span class='op'>(</span>pred_risk <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>predrisk</span>,</span>
+<span class='r-in'>             pred_horizon <span class='op'>=</span> <span class='fl'>2500</span>,</span>
+<span class='r-in'>             event_time <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>time</span>,</span>
+<span class='r-in'>             event_status <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>status</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>sc</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> Survival calibration object with prediction horizon of 2500</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> -- Input data ----------------------------------------------------------------</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      event_time event_status prop_hazard rsf_axis gradient_booster rsf_oblique</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>           &lt;int&gt;        &lt;num&gt;       &lt;num&gt;    &lt;num&gt;            &lt;num&gt;       &lt;num&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   1:        400            1      0.9990   0.9026           0.9351      0.9463</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   2:       4500            0      0.4272   0.3072           0.0524      0.3680</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   3:       1925            1      0.8286   0.4722           0.2342      0.5982</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   4:       1832            0      0.0358   0.1474           0.0422      0.1460</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   5:       2466            1      0.0392   0.1925           0.0568      0.1558</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  ---                                                                          </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 134:       1300            0      0.1509   0.1783           0.0629      0.1669</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 135:       1293            0      0.1805   0.3466           0.1299      0.2416</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 136:       1250            0      0.9823   0.4743           0.3254      0.5727</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 137:       1230            0      0.0182   0.0589           0.0322      0.0637</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 138:       1153            0      0.0718   0.1637           0.0527      0.1220</span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

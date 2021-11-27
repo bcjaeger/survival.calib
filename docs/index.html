@@ -117,7 +117,7 @@
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcjaeger.github.io/survival.calib">survival.calib</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival">survival</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/tagteam/riskRegression">riskRegression</a></span><span class="op">)</span>
-<span class="co">#&gt; riskRegression version 2020.12.08</span>
+<span class="co">#&gt; riskRegression version 2021.10.10</span>
 
 <span class="va">model_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'futime'</span>, <span class="st">'death'</span>, <span class="st">'age'</span>, <span class="st">'sex'</span>, <span class="st">'flc.grp'</span>, <span class="st">'lambda'</span><span class="op">)</span>
 <span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/survival/man/flchain.html">flchain</a></span><span class="op">[</span>, <span class="va">model_vars</span><span class="op">]</span>
@@ -149,58 +149,88 @@
 <span class="op">)</span>
 
 <span class="co"># step 3</span>
-<span class="va">time_predict</span> <span class="op">&lt;-</span> <span class="fl">4000</span>
-<span class="va">risk_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/riskRegression/man/predictRisk.html">predictRisk</a></span><span class="op">(</span><span class="va">risk_mdl</span>,
+<span class="va">pred_horizon</span> <span class="op">&lt;-</span> <span class="fl">4000</span>
+<span class="va">pred_risk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/riskRegression/man/predictRisk.html">predictRisk</a></span><span class="op">(</span><span class="va">risk_mdl</span>,
                          newdata <span class="op">=</span> <span class="va">flchain</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span>, <span class="op">]</span>,
-                         times <span class="op">=</span> <span class="va">time_predict</span><span class="op">)</span></code></pre></div>
-<p>Once we have predicted risk values, we can go in two directions:</p>
+                         times <span class="op">=</span> <span class="va">pred_horizon</span><span class="op">)</span></code></pre></div>
+<p>Once we have predicted risk values, we can create a <code>scalib</code> (survival calibration) object:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scalib.html">scalib</a></span><span class="op">(</span>pred_risk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>cph <span class="op">=</span> <span class="va">pred_risk</span><span class="op">)</span>,
+             pred_horizon <span class="op">=</span> <span class="va">pred_horizon</span>,
+             event_time <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">futime</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
+             event_status <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">death</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Survival calibration object with prediction horizon of 4000</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; -- Input data ----------------------</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;       event_time event_status    cph</span>
+<span class="co">#&gt;            &lt;int&gt;        &lt;num&gt;  &lt;num&gt;</span>
+<span class="co">#&gt;    1:       1281            1 0.8750</span>
+<span class="co">#&gt;    2:         69            1 0.9990</span>
+<span class="co">#&gt;    3:        115            1 0.9815</span>
+<span class="co">#&gt;    4:       1355            1 0.9528</span>
+<span class="co">#&gt;    5:       2851            1 0.8281</span>
+<span class="co">#&gt;   ---                               </span>
+<span class="co">#&gt; 5870:       4547            0 0.0455</span>
+<span class="co">#&gt; 5871:       4788            0 0.0397</span>
+<span class="co">#&gt; 5872:       3652            0 0.0350</span>
+<span class="co">#&gt; 5873:       2507            0 0.0716</span>
+<span class="co">#&gt; 5874:       3995            0 0.0370</span></code></pre></div>
+<p>Now we can go in two directions:</p>
 <ol>
-<li>Create risk groups by hand and pass the risk group assignments into <code>gnd_test_manual</code>.</li>
-<li>Use <code>gnd_test_auto</code>, which creates risk groups for you.</li>
+<li>Create risk groups by hand and pass the risk group assignments into <code>scalib_gnd_manual</code>.</li>
+<li>Use <code>scalib_gnd</code>, which creates risk groups for you.</li>
 </ol>
 <p>We’ll show both approaches.</p>
 <div id="gnd-test-manual-approach" class="section level3">
 <h3 class="hasAnchor">
 <a href="#gnd-test-manual-approach" class="anchor"></a>GND test (manual approach)</h3>
-<p>The manual GND test requires a <code>group</code> input value that designates which group each observation in the testing data belongs to. Creation of the <code>group</code> input is up to the user, although there are functions that help, e.g., <code>cut_percentiles</code> will create quantile groups for you.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<p>The manual GND test requires a <code>group</code> input value that designates which group each observation in the testing data belongs to. Creation of the <code>group</code> input is up to the user.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Create risk groups:</span>
-<span class="va">risk_groups</span> <span class="op">&lt;-</span> <span class="fu">cut_percentiles</span><span class="op">(</span><span class="va">risk_pred</span>, g <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>
+<span class="va">pctls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">pred_risk</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span><span class="op">)</span>
+<span class="va">risk_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html">cut</a></span><span class="op">(</span><span class="va">pred_risk</span>, breaks <span class="op">=</span> <span class="va">pctls</span>, include.lowest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">risk_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="va">risk_groups</span><span class="op">)</span>
 
 <span class="co"># supply predicted risk, observed outcomes, </span>
 <span class="co"># time of prediction, and group assignments</span>
 <span class="co"># to the manual GND test function.</span>
-<span class="va">gnd_result_manual</span> <span class="op">&lt;-</span> 
- <span class="fu">gnd_test_manual</span><span class="op">(</span>predicted_risk <span class="op">=</span> <span class="va">risk_pred</span>,
-                 event_time <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">futime</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-                 event_status <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">death</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-                 time_predict <span class="op">=</span> <span class="va">time_predict</span>,
-                 group <span class="op">=</span> <span class="va">risk_groups</span>,
-                 verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>
 
-<span class="co"># peak at the results</span>
+<span class="va">gnd_result_manual</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scalib_gnd.html">scalib_gnd_manual</a></span><span class="op">(</span>scalib_object <span class="op">=</span> <span class="va">sc</span>, 
+                                       pred_risk_col <span class="op">=</span> <span class="st">'cph'</span>,
+                                       group <span class="op">=</span> <span class="va">risk_groups</span><span class="op">)</span>
+
+<span class="co"># print the updated scalib object</span>
 <span class="va">gnd_result_manual</span>
-<span class="co">#&gt; -------------------------------------------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; - Greenwood-Nam-D'Agostino (GND) Mis-calibration Test</span>
+<span class="co">#&gt; Survival calibration object with prediction horizon of 4000</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -- Chi-square test statistic: 13.473</span>
-<span class="co">#&gt; -- degrees of freedom: 9</span>
-<span class="co">#&gt; -- P-value for lack of fit: .14</span>
-<span class="co">#&gt; -- Warnings: None</span>
+<span class="co">#&gt; -- Input data ----------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -----------------------------------------------------</span>
-<span class="co">#&gt;  </span>
-<span class="co">#&gt; - Events data by group (truncated):</span>
+<span class="co">#&gt;       event_time event_status    cph</span>
+<span class="co">#&gt;            &lt;int&gt;        &lt;num&gt;  &lt;num&gt;</span>
+<span class="co">#&gt;    1:       1281            1 0.8750</span>
+<span class="co">#&gt;    2:         69            1 0.9990</span>
+<span class="co">#&gt;    3:        115            1 0.9815</span>
+<span class="co">#&gt;    4:       1355            1 0.9528</span>
+<span class="co">#&gt;    5:       2851            1 0.8281</span>
+<span class="co">#&gt;   ---                               </span>
+<span class="co">#&gt; 5870:       4547            0 0.0455</span>
+<span class="co">#&gt; 5871:       4788            0 0.0397</span>
+<span class="co">#&gt; 5872:       3652            0 0.0350</span>
+<span class="co">#&gt; 5873:       2507            0 0.0716</span>
+<span class="co">#&gt; 5874:       3995            0 0.0370</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;  group_label group_n events_observed events_expected</span>
-<span class="co">#&gt;            1     588              20            24.7</span>
-<span class="co">#&gt;            2     587              27            34.6</span>
-<span class="co">#&gt;            3     587              45            45.0</span>
-<span class="co">#&gt;            4     588              51            59.4</span>
-<span class="co">#&gt;            5     587              69            80.3</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; + 5 more rows</span></code></pre></div>
+<span class="co">#&gt; -- Output data ----------------------------------------------------------</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Key: &lt;._id_.&gt;</span>
+<span class="co">#&gt;    ._id_. gnd_df gnd_chisq gnd_pvalue           gnd_data gnd_group_method</span>
+<span class="co">#&gt;    &lt;char&gt;  &lt;num&gt;     &lt;num&gt;      &lt;num&gt;             &lt;list&gt;           &lt;char&gt;</span>
+<span class="co">#&gt; 1:    cph      9      13.5      0.142 &lt;data.table[10x8]&gt;           custom</span></code></pre></div>
 </div>
 <div id="gnd-test-automatic-approach" class="section level3">
 <h3 class="hasAnchor">
@@ -212,43 +242,45 @@
 <li>If any groups have &lt; 5 events, collapse the group with fewest events into its neighbor, and repeat step 2</li>
 <li>run <code>gnd_test_manual</code> with the (potentially modified) groups.</li>
 </ol>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">gnd_result_auto</span> <span class="op">&lt;-</span> 
- <span class="fu">gnd_test_auto</span><span class="op">(</span>predicted_risk <span class="op">=</span> <span class="va">risk_pred</span>,
-               event_time <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">futime</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-               event_status <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">death</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-               time_predict <span class="op">=</span> <span class="va">time_predict</span>,
-               group_count_init <span class="op">=</span> <span class="fl">45</span>,
-               group_method <span class="op">=</span> <span class="st">'lump'</span>,
-               verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="va">gnd_result_auto</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scalib_gnd.html">scalib_gnd</a></span><span class="op">(</span>scalib_object <span class="op">=</span> <span class="va">sc</span>,
+                              group_method <span class="op">=</span> <span class="st">'lump'</span>, 
+                              group_count_init <span class="op">=</span> <span class="fl">45</span>,
+                              verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
 <span class="co">#&gt; Checking event counts using 45 risk groups...too few; trying again</span>
 <span class="co">#&gt; Checking event counts using 44 risk groups...too few; trying again</span>
 <span class="co">#&gt; Checking event counts using 43 risk groups...okay</span>
-<span class="co">#&gt; Attempting GND test with 43 risk groups...Done</span>
 
+<span class="co"># print the updated scalib object</span>
 <span class="va">gnd_result_auto</span>
-<span class="co">#&gt; -------------------------------------------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; - Greenwood-Nam-D'Agostino (GND) Mis-calibration Test</span>
+<span class="co">#&gt; Survival calibration object with prediction horizon of 4000</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -- Chi-square test statistic: 48.91</span>
-<span class="co">#&gt; -- degrees of freedom: 42</span>
-<span class="co">#&gt; -- P-value for lack of fit: .22</span>
-<span class="co">#&gt; -- Warnings: None</span>
+<span class="co">#&gt; -- Input data ----------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -----------------------------------------------------</span>
-<span class="co">#&gt;  </span>
-<span class="co">#&gt; - Events data by group (truncated):</span>
+<span class="co">#&gt;       event_time event_status    cph</span>
+<span class="co">#&gt;            &lt;int&gt;        &lt;num&gt;  &lt;num&gt;</span>
+<span class="co">#&gt;    1:       1281            1 0.8750</span>
+<span class="co">#&gt;    2:         69            1 0.9990</span>
+<span class="co">#&gt;    3:        115            1 0.9815</span>
+<span class="co">#&gt;    4:       1355            1 0.9528</span>
+<span class="co">#&gt;    5:       2851            1 0.8281</span>
+<span class="co">#&gt;   ---                               </span>
+<span class="co">#&gt; 5870:       4547            0 0.0455</span>
+<span class="co">#&gt; 5871:       4788            0 0.0397</span>
+<span class="co">#&gt; 5872:       3652            0 0.0350</span>
+<span class="co">#&gt; 5873:       2507            0 0.0716</span>
+<span class="co">#&gt; 5874:       3995            0 0.0370</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;  group_label group_n events_observed events_expected</span>
-<span class="co">#&gt;            1     131               7            4.39</span>
-<span class="co">#&gt;            3     260               6           10.83</span>
-<span class="co">#&gt;            4     131               6            6.20</span>
-<span class="co">#&gt;            6     262               8           13.77</span>
-<span class="co">#&gt;            7     130               6            7.55</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; + 38 more rows</span></code></pre></div>
-<p>You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, don’t use 45 groups (the default value for <code>group_count_init</code> is 10).</p>
+<span class="co">#&gt; -- Output data ----------------------------------------------------------</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Key: &lt;._id_.&gt;</span>
+<span class="co">#&gt;    ._id_. gnd_df gnd_chisq gnd_pvalue           gnd_data gnd_group_method</span>
+<span class="co">#&gt;    &lt;fctr&gt;  &lt;num&gt;     &lt;num&gt;      &lt;num&gt;             &lt;list&gt;           &lt;char&gt;</span>
+<span class="co">#&gt; 1:    cph     42        51      0.162 &lt;data.table[43x8]&gt;             lump</span></code></pre></div>
+<p>You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, use 10 groups (the default value for <code>group_count_init</code>).</p>
 </div>
 </div>
 </div>

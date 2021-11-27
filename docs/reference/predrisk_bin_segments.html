@@ -153,6 +153,13 @@
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
+      <th>x</th>
+      <td><p>a numeric vector of predicted risk values or an object of
+class <code>scalib</code>. If <code>x</code> is a <code>scalib</code> object, then the input arguments
+<code>event_time</code>, <code>event_status</code>, and <code>pred_horizon</code> should be left blank.
+(They are filled in using info stored in the <code>scalib</code> object).</p></td>
+    </tr>
+    <tr>
       <th>event_time</th>
       <td><p>(<em>numeric vector</em>) observed event times</p></td>
     </tr>
@@ -164,6 +171,12 @@ of this vector should be 0 (event censored) and 1 (event observed).</p></td>
     <tr>
       <th>pred_horizon</th>
       <td><p>(<em>numeric value</em>) the time of risk prediction.</p></td>
+    </tr>
+    <tr>
+      <th>by_event</th>
+      <td><p>If <code>TRUE</code>, bins will be created for each event type,
+separately. If <code>FALSE</code>, bins are made in the standard fashion for
+histograms.</p></td>
     </tr>
     <tr>
       <th>bin_count</th>
@@ -187,8 +200,33 @@ plots.</p></td>
 standard plotting tools, e.g., <code><a href='https://ggplot2.tidyverse.org/reference/ggplot.html'>ggplot2::ggplot()</a></code> (see examples).</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'>
-</div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='va'>sc</span> <span class='op'>&lt;-</span> <span class='fu'><a href='scalib.html'>scalib</a></span><span class='op'>(</span>pred_risk <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>predrisk</span>,</span>
+<span class='r-in'>             pred_horizon <span class='op'>=</span> <span class='fl'>2500</span>,</span>
+<span class='r-in'>             event_time <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>time</span>,</span>
+<span class='r-in'>             event_status <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>status</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>pbins</span> <span class='op'>&lt;-</span> <span class='fu'>predrisk_bin_segments</span><span class='op'>(</span><span class='va'>sc</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span><span class='op'>(</span><span class='va'>pbins</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>           ._id_.           x y        xend        yend</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   1: prop_hazard 0.006691434 0 0.006691434 0.017391304</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   2: prop_hazard 0.016624520 0 0.016624520 0.008695652</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   3: prop_hazard 0.026557605 0 0.026557605 0.030434783</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   4: prop_hazard 0.036490691 0 0.036490691 0.026086957</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   5: prop_hazard 0.046423777 0 0.046423777 0.017391304</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  ---                                                  </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 396: rsf_oblique 0.905950677 0 0.905950677 0.012500000</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 397: rsf_oblique 0.914816484 0 0.914816484 0.025000000</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 398: rsf_oblique 0.923682290 0 0.923682290 0.012500000</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 399: rsf_oblique 0.932548097 0 0.932548097 0.000000000</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 400: rsf_oblique 0.941413904 0 0.941413904 0.050000000</span>
+<span class='r-in'></span>
+<span class='r-in'><span class='va'>pbins</span> <span class='op'>&lt;-</span> <span class='fu'>predrisk_bin_segments</span><span class='op'>(</span>x <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>predrisk</span><span class='op'>$</span><span class='va'>prop_hazard</span>,</span>
+<span class='r-in'>                               event_time <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>time</span>,</span>
+<span class='r-in'>                               event_status <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>status</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

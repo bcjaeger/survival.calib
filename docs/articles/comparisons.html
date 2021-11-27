@@ -85,7 +85,7 @@
 
       
 
-      </header><script src="comparisons_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
+      </header><script src="comparisons_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Comparing calibration of multiple models</h1>
@@ -117,7 +117,7 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 <span class="co"># drop rows with missing values for simplicity</span>
-<span class="va">data_init</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="va">flchain</span><span class="op">)</span>
+<span class="va">data_init</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/na.omit.data.table.html">na.omit</a></span><span class="op">(</span><span class="va">flchain</span><span class="op">)</span>
 
 <span class="va">data_init</span><span class="op">$</span><span class="va">chapter</span> <span class="op">&lt;-</span> <span class="cn">NULL</span>
 
@@ -157,7 +157,7 @@
                  data <span class="op">=</span> <span class="va">data_train</span>,
                  x <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
 
-<span class="va">model_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/update.html">update</a></span><span class="op">(</span><span class="va">model_1</span>, <span class="va">.</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">lambda</span> <span class="op">+</span> <span class="va">kappa</span> <span class="op">+</span> <span class="va">creatinine</span><span class="op">)</span>
+<span class="va">model_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/update.dev.pkg.html">update</a></span><span class="op">(</span><span class="va">model_1</span>, <span class="va">.</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">lambda</span> <span class="op">+</span> <span class="va">kappa</span> <span class="op">+</span> <span class="va">creatinine</span><span class="op">)</span>
 
 <span class="co"># compute predicted risk at 2000 days post baseline</span>
 <span class="va">time_predict</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2000</span><span class="op">)</span>
@@ -169,8 +169,8 @@
                                      <span class="va">predrisk_2</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span>,
                     pred_horizon <span class="op">=</span> <span class="va">time_predict</span>,
                     event_status <span class="op">=</span> <span class="va">data_test</span><span class="op">$</span><span class="va">death</span>,
-                    event_time <span class="op">=</span> <span class="va">data_test</span><span class="op">$</span><span class="va">futime</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="../reference/scalib_gnd.html">scalib_gnd</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+                    event_time <span class="op">=</span> <span class="va">data_test</span><span class="op">$</span><span class="va">futime</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="../reference/scalib_gnd.html">scalib_gnd</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="../reference/scalib_hare.html">scalib_hare</a></span><span class="op">(</span><span class="op">)</span></code></pre></div>
 <p>Now let’s combine the data and create a graph showing both curves.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">

@@ -215,7 +215,13 @@ groups to form based on percentiles of <code>predicted_risk</code> values.</p></
     <tr>
       <th>group_count_min</th>
       <td><p>(<em>integer value</em>) the minimum number of
-groups to attempt running the GND test with.</p></td>
+groups to attempt running the GND test with. Only relevant if
+using <code>scalib_gnd_manual</code>.</p></td>
+    </tr>
+    <tr>
+      <th>group_min_events</th>
+      <td><p>(<em>numeric value</em>) The minimum number of events
+within a risk group (see details).</p></td>
     </tr>
     <tr>
       <th>verbose</th>
@@ -229,14 +235,23 @@ that contains predicted risk values. This variable should be in
 <code>scalib_object$data_inputs</code>.</p></td>
     </tr>
     <tr>
+      <th>group</th>
+      <td><p>(<em>numeric vector</em>) Only relevant if using <code>scalib_gnd_manual</code>.
+An integer valued vector with group values starting at 1 and increasing
+by 1 for each additional group. These risk groups are used to run the
+GND test.</p></td>
+    </tr>
+    <tr>
       <th>group_min_events_warn</th>
       <td><p>(<em>numeric value</em>) The lowest event count
-within a risk group that will not cause a warning (see details).</p></td>
+within a risk group that will not cause a warning (see details).
+Only relevant if using <code>scalib_gnd_manual</code>.</p></td>
     </tr>
     <tr>
       <th>group_min_events_stop</th>
       <td><p>(<em>numeric value</em>) The lowest event count
-within a risk group that will not cause a hard stop (see details).</p></td>
+within a risk group that will not cause a hard stop (see details).
+Only relevant if using <code>scalib_gnd_manual</code>.</p></td>
     </tr>
     <tr>
       <th>pred_risk</th>
@@ -255,12 +270,6 @@ of this vector should be 0 (event censored) and 1 (event observed).</p></td>
     <tr>
       <th>event_time</th>
       <td><p>(<em>numeric vector</em>) observed event times</p></td>
-    </tr>
-    <tr>
-      <th>group_col</th>
-      <td><p>(<em>character value</em>) the column name of the variable
-that contains risk group values. This variable should be in
-<code>scalib_object$data_inputs</code></p></td>
     </tr>
     </table>
 
@@ -292,49 +301,71 @@ goodness‐of‐fit in the survival setting. <em>Statistics in medicine</em>, 34
 pp.1659-1680. DOI: 10.1002/sim.6428</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'># packages</span>
-<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/tagteam/riskRegression'>riskRegression</a></span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'>riskRegression version 2020.12.08</span></div><div class='input'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/therneau/survival'>survival</a></span><span class='op'>)</span>
-
-<span class='co'># set index for training data</span>
-<span class='va'>train_index</span> <span class='op'>&lt;-</span> <span class='fl'>1</span><span class='op'>:</span><span class='fl'>3000</span>
-
-<span class='co'># fit cox PH model using train data</span>
-<span class='va'>risk_mdl</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/survival/man/coxph.html'>coxph</a></span><span class='op'>(</span>data <span class='op'>=</span> <span class='va'>flchain</span><span class='op'>[</span><span class='va'>train_index</span>, <span class='op'>]</span>,
-                  x <span class='op'>=</span> <span class='cn'>TRUE</span>,
-                  formula <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/pkg/survival/man/Surv.html'>Surv</a></span><span class='op'>(</span><span class='va'>futime</span>, <span class='va'>death</span><span class='op'>)</span><span class='op'>~</span><span class='va'>age</span><span class='op'>+</span><span class='va'>sex</span><span class='op'>+</span><span class='va'>flc.grp</span><span class='op'>+</span><span class='va'>lambda</span><span class='op'>)</span>
-
-<span class='co'># set time of prediction</span>
-<span class='va'>pred_horizon</span> <span class='op'>&lt;-</span> <span class='fl'>4000</span>
-
-<span class='co'># predict risk in the testing data</span>
-<span class='va'>pred_risk</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/pkg/riskRegression/man/predictRisk.html'>predictRisk</a></span><span class='op'>(</span><span class='va'>risk_mdl</span>,
-                         newdata <span class='op'>=</span> <span class='va'>flchain</span><span class='op'>[</span><span class='op'>-</span><span class='va'>train_index</span>, <span class='op'>]</span>,
-                         times <span class='op'>=</span> <span class='va'>pred_horizon</span><span class='op'>)</span>
-
-<span class='co'># create a scalib object</span>
-
-
-
-<span class='co'># run GND test using 10 groups; apply some rules:</span>
-<span class='co'>#  1. require at least 40 events per group</span>
-<span class='co'>#  2. try to create 10 groups, and lump the lowest event frequency groups</span>
-<span class='co'>#     if any groups have less than 40 events.</span>
-<span class='co'>#  3. Hard stop if this is not obtainable with 5 or more groups.</span>
-<span class='co'>#  4. set verbose = 2 to see every detail.</span>
-<span class='co'># (note that these rules are not a recommendation on how to use the test;</span>
-<span class='co'>#  this example just shows the mechanics of the automatic group reduction.</span>
-<span class='co'>#  The recommended values are the default values.)</span>
-
-<span class='fu'>scalib_gnd</span><span class='op'>(</span>predicted_risk <span class='op'>=</span> <span class='va'>pred_risk</span>,
-              event_time <span class='op'>=</span> <span class='va'>flchain</span><span class='op'>$</span><span class='va'>futime</span><span class='op'>[</span><span class='op'>-</span><span class='va'>train_index</span><span class='op'>]</span>,
-              event_status <span class='op'>=</span> <span class='va'>flchain</span><span class='op'>$</span><span class='va'>death</span><span class='op'>[</span><span class='op'>-</span><span class='va'>train_index</span><span class='op'>]</span>,
-              pred_horizon <span class='op'>=</span> <span class='va'>pred_horizon</span>,
-              group_min_events_warn <span class='op'>=</span> <span class='fl'>40</span>,
-              group_count_init <span class='op'>=</span> <span class='fl'>10</span>,
-              group_count_min <span class='op'>=</span> <span class='fl'>5</span>,
-              verbose <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='error'>Error in scalib_gnd(predicted_risk = pred_risk, event_time = flchain$futime[-train_index],     event_status = flchain$death[-train_index], pred_horizon = pred_horizon,     group_min_events_warn = 40, group_count_init = 10, group_count_min = 5,     verbose = 2): unused arguments (predicted_risk = pred_risk, event_time = flchain$futime[-train_index], event_status = flchain$death[-train_index], pred_horizon = pred_horizon, group_min_events_warn = 40)</span></div></pre>
+    <pre class="examples"><span class='r-in'></span>
+<span class='r-in'><span class='va'>sc</span> <span class='op'>&lt;-</span> <span class='fu'><a href='scalib.html'>scalib</a></span><span class='op'>(</span>pred_risk <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>predrisk</span>,</span>
+<span class='r-in'>             pred_horizon <span class='op'>=</span> <span class='fl'>2500</span>,</span>
+<span class='r-in'>             event_time <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>time</span>,</span>
+<span class='r-in'>             event_status <span class='op'>=</span> <span class='va'>pbc_scalib</span><span class='op'>$</span><span class='va'>test</span><span class='op'>$</span><span class='va'>status</span><span class='op'>)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='co'># run GND test using 10 groups; apply some rules:</span></span>
+<span class='r-in'><span class='co'>#  1. require at least 40 events per group</span></span>
+<span class='r-in'><span class='co'>#  2. try to create 10 groups, and lump the lowest event frequency groups</span></span>
+<span class='r-in'><span class='co'>#     if any groups have less than 40 events.</span></span>
+<span class='r-in'><span class='co'>#  3. Hard stop if this is not obtainable with 5 or more groups.</span></span>
+<span class='r-in'><span class='co'>#  4. set verbose = 2 to see every detail.</span></span>
+<span class='r-in'><span class='co'># (note that these rules are not a recommendation on how to use the test;</span></span>
+<span class='r-in'><span class='co'>#  this example just shows the mechanics of the automatic group reduction.</span></span>
+<span class='r-in'><span class='co'>#  The recommended values are the default values.)</span></span>
+<span class='r-in'></span>
+<span class='r-in'><span class='fu'>scalib_gnd</span><span class='op'>(</span><span class='va'>sc</span>,</span>
+<span class='r-in'>           group_min_events <span class='op'>=</span> <span class='fl'>5</span>,</span>
+<span class='r-in'>           group_count_init <span class='op'>=</span> <span class='fl'>10</span>,</span>
+<span class='r-in'>           group_count_min <span class='op'>=</span> <span class='fl'>5</span>,</span>
+<span class='r-in'>           verbose <span class='op'>=</span> <span class='fl'>2</span><span class='op'>)</span></span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> Checking event counts using 10 risk groups...</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> too few; trying again</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> Checking event counts using 9 risk groups...</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> too few; trying again</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> Checking event counts using 8 risk groups...</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> too few; trying again</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> Checking event counts using 7 risk groups...</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> too few; trying again</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> Checking event counts using 6 risk groups...</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> too few; trying again</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> Checking event counts using 5 risk groups...</span>
+<span class='r-msg co'><span class='r-pr'>#&gt;</span> okay</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> Survival calibration object with prediction horizon of 2500</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> -- Input data ----------------------------------------------------------------</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      event_time event_status prop_hazard rsf_axis gradient_booster rsf_oblique</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>           &lt;int&gt;        &lt;num&gt;       &lt;num&gt;    &lt;num&gt;            &lt;num&gt;       &lt;num&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   1:        400            1      0.9990   0.9026           0.9351      0.9463</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   2:       4500            0      0.4272   0.3072           0.0524      0.3680</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   3:       1925            1      0.8286   0.4722           0.2342      0.5982</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   4:       1832            0      0.0358   0.1474           0.0422      0.1460</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>   5:       2466            1      0.0392   0.1925           0.0568      0.1558</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>  ---                                                                          </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 134:       1300            0      0.1509   0.1783           0.0629      0.1669</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 135:       1293            0      0.1805   0.3466           0.1299      0.2416</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 136:       1250            0      0.9823   0.4743           0.3254      0.5727</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 137:       1230            0      0.0182   0.0589           0.0322      0.0637</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 138:       1153            0      0.0718   0.1637           0.0527      0.1220</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> -- Output data --------------------------------------------------</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> Key: &lt;._id_.&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>              ._id_. gnd_df gnd_chisq gnd_pvalue          gnd_data</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>              &lt;fctr&gt;  &lt;num&gt;     &lt;num&gt;      &lt;num&gt;            &lt;list&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 1:      prop_hazard      4     12.20   1.59e-02 &lt;data.table[5x8]&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 2:         rsf_axis      4      6.00   1.99e-01 &lt;data.table[5x8]&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 3: gradient_booster      5     28.99   2.33e-05 &lt;data.table[6x8]&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 4:      rsf_oblique      4      5.63   2.28e-01 &lt;data.table[5x8]&gt;</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 1 variable not shown: [gnd_group_method &lt;char&gt;]</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> </span>
+</pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

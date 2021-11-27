@@ -1,11 +1,11 @@
-pandoc: 2.11.4
+pandoc: 2.14.0.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   basics: basics.html
   comparisons: comparisons.html
   resampling: resampling.html
-last_built: 2021-10-02T14:32Z
+last_built: 2021-11-27T15:25Z
 urls:
   reference: https://bcjaeger.github.io/survival.calib/reference
   article: https://bcjaeger.github.io/survival.calib/articles

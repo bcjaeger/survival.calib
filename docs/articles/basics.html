@@ -85,7 +85,7 @@
 
       
 
-      </header><script src="basics_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
+      </header><script src="basics_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>The basics</h1>
@@ -136,7 +136,7 @@
 <p>we omit cases with missing values</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># drop rows with missing values for simplicity</span>
-<span class="va">data_init</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="va">flchain</span><span class="op">)</span></code></pre></div>
+<span class="va">data_init</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/na.omit.data.table.html">na.omit</a></span><span class="op">(</span><span class="va">flchain</span><span class="op">)</span></code></pre></div>
 </li>
 <li>
 <p>we remove the <code>chapter</code> variable.</p>
@@ -257,9 +257,9 @@
 <p>We can visualize data stored in <code>scalib_slope$data_outputs</code> to assess calibration of the model in testing data.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
-<span class="va">gg_data</span> <span class="op">&lt;-</span> <span class="va">.scalib_slope</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://rdrr.io/r/base/Extract.html">getElement</a></span><span class="op">(</span><span class="st">"data_outputs"</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">._id_.</span>, <span class="va">hare_data_plot</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+<span class="va">gg_data</span> <span class="op">&lt;-</span> <span class="va">.scalib_slope</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/Extract.html">getElement</a></span><span class="op">(</span><span class="st">"data_outputs"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">._id_.</span>, <span class="va">hare_data_plot</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span><span class="va">hare_data_plot</span><span class="op">)</span>
 
 <span class="va">fig_cal_slope</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">gg_data</span><span class="op">)</span> <span class="op">+</span> 
@@ -325,16 +325,16 @@
 <p>We can access these values from the <code>data_outputs</code> element of <code>.scalib_slope</code>,</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
-<span class="va">.scalib_smry</span> <span class="op">&lt;-</span> <span class="va">.scalib_slope</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://rdrr.io/r/base/Extract.html">getElement</a></span><span class="op">(</span><span class="st">"data_outputs"</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+<span class="va">.scalib_smry</span> <span class="op">&lt;-</span> <span class="va">.scalib_slope</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/Extract.html">getElement</a></span><span class="op">(</span><span class="st">"data_outputs"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">hare_ici</span>, <span class="va">hare_e50</span>, <span class="va">hare_e90</span>, <span class="va">hare_emax</span><span class="op">)</span>
   </code></pre></div>
 <p>and we can also place these summaries in our growing figure.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
 
-<span class="va">rspec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/table.glue/man/round_spec.html">round_spec</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://rdrr.io/pkg/table.glue/man/round_half_up.html">round_half_even</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+<span class="va">rspec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/table.glue/man/round_spec.html">round_spec</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/pkg/table.glue/man/round_half_up.html">round_half_even</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="https://rdrr.io/pkg/table.glue/man/round_using_magnitude.html">round_using_decimal</a></span><span class="op">(</span>digits <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>
 
 <span class="va">annotate_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/table.glue/man/table_glue.html">table_glue</a></span><span class="op">(</span>
@@ -410,8 +410,8 @@
   rspec <span class="op">=</span> <span class="va">rspec</span>
 <span class="op">)</span>
 
-<span class="va">data_pointrange</span> <span class="op">&lt;-</span> <span class="va">.scalib_test</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://rdrr.io/r/base/Extract.html">getElement</a></span><span class="op">(</span><span class="st">'data_outputs'</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+<span class="va">data_pointrange</span> <span class="op">&lt;-</span> <span class="va">.scalib_test</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="https://rdrr.io/r/base/Extract.html">getElement</a></span><span class="op">(</span><span class="st">'data_outputs'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="https://tidyr.tidyverse.org/reference/nest.html">unnest</a></span><span class="op">(</span><span class="va">gnd_data</span><span class="op">)</span>
 
 <span class="va">fig_final</span> <span class="op">&lt;-</span> <span class="va">fig_cal_slope_hist</span> <span class="op">+</span> 
@@ -438,14 +438,14 @@
 <div id="piping" class="section level1">
 <h1 class="hasAnchor">
 <a href="#piping" class="anchor"></a>Piping</h1>
-<p><code>scalib_</code> functions are designed to be used with pipes (i.e., <code><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></code> or <code>|&gt;</code>). The code below shows how to make the objects we made above using <code><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></code>.</p>
+<p><code>scalib_</code> functions are designed to be used with pipes (i.e., <code>%&gt;%</code> or <code>|&gt;</code>). The code below shows how to make the objects we made above using <code>%&gt;%</code>.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
-<span class="va">.scalib</span> <span class="op">&lt;-</span> <span class="va">predrisk</span> <span class="op">%&gt;%</span> 
+<span class="va">.scalib</span> <span class="op">&lt;-</span> <span class="va">predrisk</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="../reference/scalib.html">scalib</a></span><span class="op">(</span>pred_horizon <span class="op">=</span> <span class="va">pred_horizon</span>,
          event_status <span class="op">=</span> <span class="va">data_test</span><span class="op">$</span><span class="va">death</span>,
-         event_time <span class="op">=</span> <span class="va">data_test</span><span class="op">$</span><span class="va">futime</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="../reference/scalib_hare.html">scalib_hare</a></span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+         event_time <span class="op">=</span> <span class="va">data_test</span><span class="op">$</span><span class="va">futime</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
+  <span class="fu"><a href="../reference/scalib_hare.html">scalib_hare</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> 
   <span class="fu"><a href="../reference/scalib_gnd.html">scalib_gnd</a></span><span class="op">(</span>group_count_init <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>
 
 <span class="co"># outputs are collectively stored as the scalib object</span>
