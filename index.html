@@ -23,6 +23,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -35,20 +37,32 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">survival.calib</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9000</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
   <a href="reference/index.html">Reference</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/basics.html">The basics</a>
+    </li>
+    <li>
+      <a href="articles/comparisons.html">Comparing calibration of multiple models</a>
+    </li>
+    <li>
+      <a href="articles/resampling.html">Resampling with scalib objects</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="news/index.html">Changelog</a>
@@ -56,7 +70,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/bcjaeger/survival.calib/">
+  <a href="https://github.com/bcjaeger/survival.calib/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -74,38 +88,32 @@
       </header><div class="row">
   <div class="contents col-md-9">
 
-<div id="survivalcalib" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#survivalcalib" class="anchor"></a>survival.calib</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="survivalcalib">survival.calib<a class="anchor" aria-label="anchor" href="#survivalcalib"></a>
+</h1></div>
 <!-- badges: start -->
-
 <p>The goal of <code>survival.calib</code> is to provide convenient access to tests for mis-calibration in the survival setting. It provides functions to help users apply these tests in a highly customized way (see <code>gnd_test_manual</code>) or following a protocol that the developers recommend (see <code>gnd_test_auto</code>).</p>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<!-- You can install the released version of survival.calib from [CRAN](https://CRAN.R-project.org) with: -->
-<!-- ``` r -->
-<!-- install.packages("survival.calib") -->
-<!-- ``` -->
-<p>You can install <code>survival.calib</code> from GitHub with:</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<!-- You can install the released version of survival.calib from [CRAN](https://CRAN.R-project.org) with: --><!-- ``` r --><!-- install.packages("survival.calib") --><!-- ``` --><p>You can install <code>survival.calib</code> from GitHub with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"bcjaeger/survival.calib"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bcjaeger/survival.calib"</span><span class="op">)</span></code></pre></div>
 </div>
-<div id="example" class="section level2">
-<h2 class="hasAnchor">
-<a href="#example" class="anchor"></a>Example</h2>
+<div class="section level2">
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h2>
 <p>Let’s apply the Namwood-Green-D’Agostino (GND) test to assess calibration of a proportional hazards model. First, we load packages and curate some data for modeling.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R">
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcjaeger.github.io/survival.calib">survival.calib</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival">survival</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/tagteam/riskRegression">riskRegression</a></span><span class="op">)</span>
-<span class="co">#&gt; riskRegression version 2020.12.08</span>
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bcjaeger.github.io/survival.calib">survival.calib</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/tagteam/riskRegression" class="external-link">riskRegression</a></span><span class="op">)</span>
+<span class="co">#&gt; riskRegression version 2022.03.22</span>
 
-<span class="va">model_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'futime'</span>, <span class="st">'death'</span>, <span class="st">'age'</span>, <span class="st">'sex'</span>, <span class="st">'flc.grp'</span>, <span class="st">'lambda'</span><span class="op">)</span>
-<span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/survival/man/flchain.html">flchain</a></span><span class="op">[</span>, <span class="va">model_vars</span><span class="op">]</span>
+<span class="va">model_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'futime'</span>, <span class="st">'death'</span>, <span class="st">'age'</span>, <span class="st">'sex'</span>, <span class="st">'flc.grp'</span>, <span class="st">'lambda'</span><span class="op">)</span>
+<span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/survival/man/flchain.html" class="external-link">flchain</a></span><span class="op">[</span>, <span class="va">model_vars</span><span class="op">]</span>
 
-<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">model_data</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">model_data</span><span class="op">)</span>
 <span class="co">#&gt;   futime death age sex flc.grp lambda</span>
 <span class="co">#&gt; 1     85     1  97   F      10  4.860</span>
 <span class="co">#&gt; 2   1281     1  92   F       1  0.683</span>
@@ -113,134 +121,163 @@
 <span class="co">#&gt; 4    115     1  92   F       9  2.220</span>
 <span class="co">#&gt; 5   1039     1  93   F       6  1.690</span>
 <span class="co">#&gt; 6   1355     1  90   F       9  1.860</span></code></pre></div>
-<p>Next, we</p>
-<ol>
+<p>Next, we can</p>
+<ol style="list-style-type: decimal">
 <li>designate a set of rows that will define the training set,</li>
 <li>fit a model to the training set,</li>
 <li>predict risk for mortality in a testing set.</li>
 </ol>
-<!-- end list --><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R">
-<span class="co"># step 1</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">730</span><span class="op">)</span>
-<span class="va">train_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">model_data</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># step 1</span>
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">730</span><span class="op">)</span>
+<span class="va">train_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">model_data</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span>
 
 <span class="co"># step 2</span>
-<span class="va">risk_mdl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html">coxph</a></span><span class="op">(</span>
- formula <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html">Surv</a></span><span class="op">(</span><span class="va">futime</span>, <span class="va">death</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">flc.grp</span> <span class="op">+</span> <span class="va">lambda</span>,
+<span class="va">risk_mdl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span>
+ formula <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">futime</span>, <span class="va">death</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">sex</span> <span class="op">+</span> <span class="va">flc.grp</span> <span class="op">+</span> <span class="va">lambda</span>,
  data <span class="op">=</span> <span class="va">flchain</span><span class="op">[</span><span class="va">train_index</span>,<span class="op">]</span>,
  x <span class="op">=</span> <span class="cn">TRUE</span>
 <span class="op">)</span>
 
 <span class="co"># step 3</span>
-<span class="va">time_predict</span> <span class="op">&lt;-</span> <span class="fl">4000</span>
-<span class="va">risk_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/riskRegression/man/predictRisk.html">predictRisk</a></span><span class="op">(</span><span class="va">risk_mdl</span>,
+<span class="va">pred_horizon</span> <span class="op">&lt;-</span> <span class="fl">4000</span>
+<span class="va">pred_risk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/riskRegression/man/predictRisk.html" class="external-link">predictRisk</a></span><span class="op">(</span><span class="va">risk_mdl</span>,
                          newdata <span class="op">=</span> <span class="va">flchain</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span>, <span class="op">]</span>,
-                         times <span class="op">=</span> <span class="va">time_predict</span><span class="op">)</span></code></pre></div>
-<p>Once we have predicted risk values, we can go in two directions:</p>
-<ol>
-<li>Create risk groups by hand and pass the risk group assignments into <code>gnd_test_manual</code>.</li>
-<li>Use <code>gnd_test_auto</code>, which creates risk groups for you.</li>
+                         times <span class="op">=</span> <span class="va">pred_horizon</span><span class="op">)</span></code></pre></div>
+<p>Once we have predicted risk values, we can create a <code>scalib</code> (survival calibration) object:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scalib.html">scalib</a></span><span class="op">(</span>pred_risk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>cph <span class="op">=</span> <span class="va">pred_risk</span><span class="op">)</span>,
+             pred_horizon <span class="op">=</span> <span class="va">pred_horizon</span>,
+             event_time <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">futime</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
+             event_status <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">death</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Survival calibration object with prediction horizon of 4000</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; -- Input data ----------------------</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;       event_time event_status    cph</span>
+<span class="co">#&gt;            &lt;int&gt;        &lt;num&gt;  &lt;num&gt;</span>
+<span class="co">#&gt;    1:       1281            1 0.8750</span>
+<span class="co">#&gt;    2:         69            1 0.9990</span>
+<span class="co">#&gt;    3:        115            1 0.9815</span>
+<span class="co">#&gt;    4:       1355            1 0.9528</span>
+<span class="co">#&gt;    5:       2851            1 0.8281</span>
+<span class="co">#&gt;   ---                               </span>
+<span class="co">#&gt; 5870:       4547            0 0.0455</span>
+<span class="co">#&gt; 5871:       4788            0 0.0397</span>
+<span class="co">#&gt; 5872:       3652            0 0.0350</span>
+<span class="co">#&gt; 5873:       2507            0 0.0716</span>
+<span class="co">#&gt; 5874:       3995            0 0.0370</span></code></pre></div>
+<p>Now we can go in two directions:</p>
+<ol style="list-style-type: decimal">
+<li>Create risk groups by hand and pass the risk group assignments into <code>scalib_gnd_manual</code>.</li>
+<li>Use <code>scalib_gnd</code>, which creates risk groups for you.</li>
 </ol>
 <p>We’ll show both approaches.</p>
-<div id="gnd-test-manual-approach" class="section level3">
-<h3 class="hasAnchor">
-<a href="#gnd-test-manual-approach" class="anchor"></a>GND test (manual approach)</h3>
-<p>The manual GND test requires a <code>group</code> input value that designates which group each observation in the testing data belongs to. Creation of the <code>group</code> input is up to the user, although there are functions that help, e.g., <code>cut_percentiles</code> will create quantile groups for you.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R">
-<span class="co"># Create risk groups:</span>
-<span class="va">risk_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cut_percentiles.html">cut_percentiles</a></span><span class="op">(</span><span class="va">risk_pred</span>, g <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>
+<div class="section level3">
+<h3 id="gnd-test-manual-approach">GND test (manual approach)<a class="anchor" aria-label="anchor" href="#gnd-test-manual-approach"></a>
+</h3>
+<p>The manual GND test requires a <code>group</code> input value that designates which group each observation in the testing data belongs to. Creation of the <code>group</code> input is up to the user.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Create risk groups:</span>
+<span class="va">pctls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">pred_risk</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span> <span class="op">/</span> <span class="fl">10</span><span class="op">)</span>
+<span class="va">risk_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cut.html" class="external-link">cut</a></span><span class="op">(</span><span class="va">pred_risk</span>, breaks <span class="op">=</span> <span class="va">pctls</span>, include.lowest <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="va">risk_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">risk_groups</span><span class="op">)</span>
 
 <span class="co"># supply predicted risk, observed outcomes, </span>
 <span class="co"># time of prediction, and group assignments</span>
 <span class="co"># to the manual GND test function.</span>
-<span class="va">gnd_result_manual</span> <span class="op">&lt;-</span> 
- <span class="fu"><a href="reference/gnd_test_manual.html">gnd_test_manual</a></span><span class="op">(</span>predicted_risk <span class="op">=</span> <span class="va">risk_pred</span>,
-                 event_time <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">futime</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-                 event_status <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">death</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-                 time_predict <span class="op">=</span> <span class="va">time_predict</span>,
-                 group <span class="op">=</span> <span class="va">risk_groups</span>,
-                 verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>
 
-<span class="co"># peak at the results</span>
+<span class="va">gnd_result_manual</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scalib_gnd.html">scalib_gnd_manual</a></span><span class="op">(</span>scalib_object <span class="op">=</span> <span class="va">sc</span>, 
+                                       pred_risk_col <span class="op">=</span> <span class="st">'cph'</span>,
+                                       group <span class="op">=</span> <span class="va">risk_groups</span><span class="op">)</span>
+
+<span class="co"># print the updated scalib object</span>
 <span class="va">gnd_result_manual</span>
-<span class="co">#&gt; -------------------------------------------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; - Greenwood-Nam-D'Agostino (GND) Mis-calibration Test</span>
+<span class="co">#&gt; Survival calibration object with prediction horizon of 4000</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -- Chi-square test statistic: 13.473</span>
-<span class="co">#&gt; -- degrees of freedom: 9</span>
-<span class="co">#&gt; -- P-value for lack of fit: .14</span>
-<span class="co">#&gt; -- Warnings: None</span>
+<span class="co">#&gt; -- Input data ----------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -----------------------------------------------------</span>
-<span class="co">#&gt;  </span>
-<span class="co">#&gt; - Events data by group (truncated):</span>
+<span class="co">#&gt;       event_time event_status    cph</span>
+<span class="co">#&gt;            &lt;int&gt;        &lt;num&gt;  &lt;num&gt;</span>
+<span class="co">#&gt;    1:       1281            1 0.8750</span>
+<span class="co">#&gt;    2:         69            1 0.9990</span>
+<span class="co">#&gt;    3:        115            1 0.9815</span>
+<span class="co">#&gt;    4:       1355            1 0.9528</span>
+<span class="co">#&gt;    5:       2851            1 0.8281</span>
+<span class="co">#&gt;   ---                               </span>
+<span class="co">#&gt; 5870:       4547            0 0.0455</span>
+<span class="co">#&gt; 5871:       4788            0 0.0397</span>
+<span class="co">#&gt; 5872:       3652            0 0.0350</span>
+<span class="co">#&gt; 5873:       2507            0 0.0716</span>
+<span class="co">#&gt; 5874:       3995            0 0.0370</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;  group_label group_n events_observed events_expected</span>
-<span class="co">#&gt;            1     588              20            24.7</span>
-<span class="co">#&gt;            2     587              27            34.6</span>
-<span class="co">#&gt;            3     587              45            45.0</span>
-<span class="co">#&gt;            4     588              51            59.4</span>
-<span class="co">#&gt;            5     587              69            80.3</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; + 5 more rows</span></code></pre></div>
+<span class="co">#&gt; -- Output data ----------------------------------------------------------</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Key: &lt;._id_.&gt;</span>
+<span class="co">#&gt;    ._id_. gnd_df gnd_chisq gnd_pvalue           gnd_data gnd_group_method</span>
+<span class="co">#&gt;    &lt;char&gt;  &lt;num&gt;     &lt;num&gt;      &lt;num&gt;             &lt;list&gt;           &lt;char&gt;</span>
+<span class="co">#&gt; 1:    cph      9      13.5      0.142 &lt;data.table[10x8]&gt;           custom</span></code></pre></div>
 </div>
-<div id="gnd-test-automatic-approach" class="section level3">
-<h3 class="hasAnchor">
-<a href="#gnd-test-automatic-approach" class="anchor"></a>GND test (automatic approach)</h3>
+<div class="section level3">
+<h3 id="gnd-test-automatic-approach">GND test (automatic approach)<a class="anchor" aria-label="anchor" href="#gnd-test-automatic-approach"></a>
+</h3>
 <p>Demler et al. show that the GND test has high variability if there are less than 5 events in any of the risk groups. When this occurs, the authors recommend lumping groups with &lt; 5 events into the nearest risk group. The <code>gnd_test_auto</code> automates this approach, allowing users to forego manual creation of risk groups. For example, below we apply <code>gnd_test_auto</code> with <code>group_count_init = 45</code>, which initiates the following algorithm:</p>
-<ol>
+<ol style="list-style-type: decimal">
 <li>Create 45 groups based on quantiles of predicted risk.</li>
 <li>Check the event counts in each group</li>
 <li>If any groups have &lt; 5 events, collapse the group with fewest events into its neighbor, and repeat step 2</li>
 <li>run <code>gnd_test_manual</code> with the (potentially modified) groups.</li>
 </ol>
-<!-- end list --><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R">
-<span class="va">gnd_result_auto</span> <span class="op">&lt;-</span> 
- <span class="fu"><a href="reference/gnd_test_auto.html">gnd_test_auto</a></span><span class="op">(</span>predicted_risk <span class="op">=</span> <span class="va">risk_pred</span>,
-               event_time <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">futime</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-               event_status <span class="op">=</span> <span class="va">flchain</span><span class="op">$</span><span class="va">death</span><span class="op">[</span><span class="op">-</span><span class="va">train_index</span><span class="op">]</span>,
-               time_predict <span class="op">=</span> <span class="va">time_predict</span>,
-               group_count_init <span class="op">=</span> <span class="fl">45</span>,
-               group_method <span class="op">=</span> <span class="st">'lump'</span>,
-               verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+<span class="va">gnd_result_auto</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scalib_gnd.html">scalib_gnd</a></span><span class="op">(</span>scalib_object <span class="op">=</span> <span class="va">sc</span>,
+                              group_method <span class="op">=</span> <span class="st">'lump'</span>, 
+                              group_count_init <span class="op">=</span> <span class="fl">45</span>,
+                              verbose <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
 <span class="co">#&gt; Checking event counts using 45 risk groups...too few; trying again</span>
 <span class="co">#&gt; Checking event counts using 44 risk groups...too few; trying again</span>
 <span class="co">#&gt; Checking event counts using 43 risk groups...okay</span>
-<span class="co">#&gt; Attempting GND test with 43 risk groups...Done</span>
 
+<span class="co"># print the updated scalib object</span>
 <span class="va">gnd_result_auto</span>
-<span class="co">#&gt; -------------------------------------------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; - Greenwood-Nam-D'Agostino (GND) Mis-calibration Test</span>
+<span class="co">#&gt; Survival calibration object with prediction horizon of 4000</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -- Chi-square test statistic: 48.91</span>
-<span class="co">#&gt; -- degrees of freedom: 42</span>
-<span class="co">#&gt; -- P-value for lack of fit: .22</span>
-<span class="co">#&gt; -- Warnings: None</span>
+<span class="co">#&gt; -- Input data ----------------------</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; -----------------------------------------------------</span>
-<span class="co">#&gt;  </span>
-<span class="co">#&gt; - Events data by group (truncated):</span>
+<span class="co">#&gt;       event_time event_status    cph</span>
+<span class="co">#&gt;            &lt;int&gt;        &lt;num&gt;  &lt;num&gt;</span>
+<span class="co">#&gt;    1:       1281            1 0.8750</span>
+<span class="co">#&gt;    2:         69            1 0.9990</span>
+<span class="co">#&gt;    3:        115            1 0.9815</span>
+<span class="co">#&gt;    4:       1355            1 0.9528</span>
+<span class="co">#&gt;    5:       2851            1 0.8281</span>
+<span class="co">#&gt;   ---                               </span>
+<span class="co">#&gt; 5870:       4547            0 0.0455</span>
+<span class="co">#&gt; 5871:       4788            0 0.0397</span>
+<span class="co">#&gt; 5872:       3652            0 0.0350</span>
+<span class="co">#&gt; 5873:       2507            0 0.0716</span>
+<span class="co">#&gt; 5874:       3995            0 0.0370</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;  group_label group_n events_observed events_expected</span>
-<span class="co">#&gt;            1     131               7            4.39</span>
-<span class="co">#&gt;            3     260               6           10.83</span>
-<span class="co">#&gt;            4     131               6            6.20</span>
-<span class="co">#&gt;            6     262               8           13.77</span>
-<span class="co">#&gt;            7     130               6            7.55</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; + 38 more rows</span></code></pre></div>
-<p>You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, don’t use 45 groups (the default value for <code>group_count_init</code> is 10).</p>
+<span class="co">#&gt; -- Output data ----------------------------------------------------------</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Key: &lt;._id_.&gt;</span>
+<span class="co">#&gt;    ._id_. gnd_df gnd_chisq gnd_pvalue           gnd_data gnd_group_method</span>
+<span class="co">#&gt;    &lt;fctr&gt;  &lt;num&gt;     &lt;num&gt;      &lt;num&gt;             &lt;list&gt;           &lt;char&gt;</span>
+<span class="co">#&gt; 1:    cph     42        51      0.162 &lt;data.table[43x8]&gt;             lump</span></code></pre></div>
+<p>You can see from the printed output that the p-value with 10 groups is different from the p-value with 43 groups. Simulation studies have focused on using 10 groups and this approach has shown good statistical properties. So, use 10 groups (the default value for <code>group_count_init</code>).</p>
 </div>
 </div>
 </div>
-<div id="references" class="section level1">
-<h1 class="hasAnchor">
-<a href="#references" class="anchor"></a>References</h1>
+<div class="section level1">
+<h1 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h1>
 <p>Demler, O.V., Paynter, N.P. and Cook, N.R., 2015. Tests of calibration and goodness‐of‐fit in the survival setting. <em>Statistics in medicine</em>, 34(10), pp.1659-1680. DOI: 10.1002/sim.6428</p>
 </div>
 
@@ -248,46 +285,58 @@
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Browse source code at <br><a href="https://github.com/bcjaeger/survival.calib/">https://​github.com/​bcjaeger/​survival.calib/​</a>
-</li>
-<li>Report a bug at <br><a href="https://github.com/bcjaeger/survival.calib/issues">https://​github.com/​bcjaeger/​survival.calib/​issues</a>
-</li>
-</ul>
-</div>
-<div class="license">
-<h2>License</h2>
-<ul class="list-unstyled">
-<li><a href="LICENSE.html">Full license</a></li>
-<li><small><a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
-</ul>
-</div>
-<div class="developers">
-<h2>Developers</h2>
-<ul class="list-unstyled">
-<li>Olga Demler <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0003-3355-3210" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Byron Jaeger <br><small class="roles"> Maintainer </small> <a href="https://orcid.org/0000-0001-7399-2299" target="orcid.widget" aria-label="ORCID"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li><a href="https://github.com/bcjaeger/survival.calib/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/bcjaeger/survival.calib/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="license">
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://codecov.io/gh/bcjaeger/survival.calib"><img src="https://codecov.io/gh/bcjaeger/survival.calib/branch/master/graph/badge.svg?token=V522BP9QGS" alt="codecov"></a></li>
-<li><a href="https://github.com/bcjaeger/survival.calib/actions"><img src="https://github.com/bcjaeger/survival.calib/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="LICENSE.html">Full license</a></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing survival.calib</a></li>
+</ul>
 </div>
+
+<div class="developers">
+<h2 data-toc-skip>Developers</h2>
+<ul class="list-unstyled">
+<li>Byron Jaeger <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0001-7399-2299" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Olga Demler <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0003-3355-3210" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+</ul>
+</div>
+
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://codecov.io/gh/bcjaeger/survival.calib" class="external-link"><img src="https://codecov.io/gh/bcjaeger/survival.calib/branch/master/graph/badge.svg?token=V522BP9QGS" alt="codecov"></a></li>
+<li><a href="https://github.com/bcjaeger/survival.calib/actions" class="external-link"><img src="https://github.com/bcjaeger/survival.calib/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://zenodo.org/badge/latestdoi/379621580" class="external-link"><img src="https://zenodo.org/badge/379621580.svg" alt="DOI"></a></li>
+</ul>
+</div>
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Olga Demler, Byron Jaeger.</p>
+  <p></p>
+<p>Developed by Byron Jaeger, Olga Demler.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.3.</p>
 </div>
 
       </footer>
@@ -295,6 +344,8 @@
 
   
 
+
+  
 
   </body>
 </html>

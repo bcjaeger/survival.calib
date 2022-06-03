@@ -1,18 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://bcjaeger.github.io/survival.calib/404.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/LICENSE.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/articles/basics.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/articles/comparisons.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/articles/resampling.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/authors.html</loc>
+  </url>
+  <url>
     <loc>https://bcjaeger.github.io/survival.calib/index.html</loc>
   </url>
   <url>
-    <loc>https://bcjaeger.github.io/survival.calib/reference/cut_percentiles.html</loc>
+    <loc>https://bcjaeger.github.io/survival.calib/news/index.html</loc>
   </url>
   <url>
-    <loc>https://bcjaeger.github.io/survival.calib/reference/gnd_test_auto.html</loc>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/as.data.table.scalib.html</loc>
   </url>
   <url>
-    <loc>https://bcjaeger.github.io/survival.calib/reference/gnd_test_manual.html</loc>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/index.html</loc>
   </url>
   <url>
-    <loc>https://bcjaeger.github.io/survival.calib/reference/print.survival.calib_gnd_test.html</loc>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/pbc_scalib.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/predrisk_bin_segments.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/predrisk_grp_prcnt.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/print.scalib.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/scalib.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/scalib_gnd.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/scalib_hare.html</loc>
+  </url>
+  <url>
+    <loc>https://bcjaeger.github.io/survival.calib/reference/survival.calib-package.html</loc>
   </url>
 </urlset>
