@@ -39,7 +39,7 @@ curate some data for modeling.
 library(survival.calib)
 library(survival)
 library(riskRegression)
-#> riskRegression version 2021.10.10
+#> riskRegression version 2022.03.22
 
 model_vars <- c('futime', 'death', 'age', 'sex', 'flc.grp', 'lambda')
 model_data <- survival::flchain[, model_vars]
@@ -54,7 +54,7 @@ head(model_data)
 #> 6   1355     1  90   F       9  1.860
 ```
 
-Next, we
+Next, we can
 
 1.  designate a set of rows that will define the training set,
 2.  fit a model to the training set,

@@ -54,7 +54,7 @@ head(model_data)
 
 ```
 
-Next, we 
+Next, we can
 
 1. designate a set of rows that will define the training set,
 1. fit a model to the training set,
